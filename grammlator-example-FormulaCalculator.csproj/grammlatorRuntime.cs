@@ -59,6 +59,7 @@
         /// </param>
         public cGrammlatorInput(cAttributeStack attributeStack) {
             _a = attributeStack;
+            accepted = true;
             }
 
         /// <summary>
