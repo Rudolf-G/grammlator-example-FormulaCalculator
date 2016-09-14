@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace grammlatorExampleEvaluateNumericExpression {
     class Program {
         static void Main(string[] args) {
-           new cReadAndAnalyze().ReadAndAnalyze();
+           new ReadAndAnalyzeClass().ReadAndAnalyze();
             }
 
         }

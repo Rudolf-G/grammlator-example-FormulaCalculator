@@ -1,11 +1,12 @@
 using System;
-using System.Runtime.InteropServices;
-using grammlatorRuntime;
+using GrammlatorRuntime;
 
-namespace grammlatorRuntime {
+namespace GrammlatorRuntime {
+    using System.Runtime.InteropServices; // to overlay fields of the elements of the attribute array
 
-    // Add the types double and char to the declaration of the elements of the attribute stack 
-    public partial struct sAttribute {
+    // The example uses attributes with the C# types the types double and char.
+    // Thes types are added to the declaration of the elements of the attribute stack.
+    public partial struct AttributeStruct {
         // [FieldOffset(0)] // [FieldOffset(0)] is used for object types
         [FieldOffset(8)] // [FieldOffset(8)] is used for value types 
         public double _double; // attributes of type double are used here and in MaySymbolInput
@@ -17,34 +18,34 @@ namespace grammlatorRuntime {
 namespace grammlatorExampleEvaluateNumericExpression {
     using System.Diagnostics;
     // Simplify access to the enumeration values the input accessor Symbol may assume
-    using CharGroup = cMyCharacterInput.CharGroup;
-    using eSymbol = cMySymbolInput.eSymbol;
+    using CharGroupEnumeration = MyCharacterInputClass.CharGroupEnumeration;
+    using eSymbol = MySymbolInputClass.eSymbol;
 
     // In the following attributed grammar, "double" is used as type of attributes.
     // There are no predefined types in the attribute stack of the aGaC-sources.
     // All types used are declared in the following manner:
-    public class cReadAndAnalyze: cGrammlatorApplication {
+    public class ReadAndAnalyzeClass: GrammlatorApplication {
 
-        cMyCharacterInput MyCharInput;
-        cMySymbolInput MySymbolInput;
+        MyCharacterInputClass MyCharInput;
+        MySymbolInputClass MySymbolInput;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public cReadAndAnalyze() {
-            MyCharInput = new cMyCharacterInput(_a);
-            MySymbolInput = new cMySymbolInput(_a, _s, MyCharInput);
+        public ReadAndAnalyzeClass() {
+            MyCharInput = new MyCharacterInputClass(_a);
+            MySymbolInput = new MySymbolInputClass(_a, _s, MyCharInput);
             }
 
         public void ReadAndAnalyze() {
 
-            // The input loop with calls to ComputeExpression
+            // This is a manually programmed input loop with calls to ComputeExpression
             while (true) {
                 Console.WriteLine("Input a numeric expression or an empty line to stop the program:");
 
                 // Look ahead one input symbol to check for empty line
                 MyCharInput.GetSymbol();
-                if (MyCharInput.Symbol == CharGroup.eol) {
+                if (MyCharInput.Symbol == CharGroupEnumeration.eol) {
                     break;
                     }
 
@@ -54,6 +55,7 @@ namespace grammlatorExampleEvaluateNumericExpression {
                 // for example if you enter a letter (interpreted by myCharInput als "unknown"-Symbol)
                 // The following grammar does not use an end symbol which stops the analyzing process.
                 // Therefore ComputeExpression() returns as soon as a look ahead input symbol can not be accepted. 
+
                 string RemainingCharacters = MySymbolInput.GetRemainigCharactersOfLine();
                 if (RemainingCharacters != "") {
                     Console.WriteLine("Remainig characters ignored: '" + RemainingCharacters + "'");
@@ -71,27 +73,34 @@ namespace grammlatorExampleEvaluateNumericExpression {
         void ErrorHandler(int i) {
             // the symbol that caused the error is available in MySymbolInput.Symbol.
             // because it caused an error, it can not be accepted
-            Debug.Assert(!MySymbolInput.accepted);
+            Debug.Assert(!MySymbolInput.Accepted);
             Console.WriteLine("Error: no correct expression recognized, illegal symbol \"" + MySymbolInput.Symbol.ToString() + '"');
             // return to generated code, which will set the stacks to correct states and then return
             }
 
-        //| // lines starting with //| contain grammar rules, which are evalueted by grammlator
-        //| /* the grammar may contain comments alike comments of C# */
+        //| /* This is the first line of ReadAndAnalyze interpreted by the grammlator System. It is interpreted as comment.
+        //|    Lines starting with //| contain grammar rules, which are evaluated by grammlator.
+        //|    The grammar may contain comments alike comments of C# */
         //|
         //| /* Definition of prefixes used in the generated code (for example " if (MySymbolInput.Symbol == eSymbol.number)"
         //|   and of the terminal symbols of the grammar with their respectiv semantic attributes */
         //|
         //| MySymbolInput, eSymbol = 
-        public enum CopyOf_cMySymbolInput_eSymbol { // these two lines are not yet evaluated by grammlator
-            identifier, number, leftParentheses, addOp, subOp, multOp, divOp, rightParentheses, eol, unknown
+        public enum CopyOfMySymbolInput_eSymbol { // these definition is not yet evaluated by grammlator
+            addOp, subOp, multOp, divOp, rightParentheses,
+            leftParentheses, number, identifier /* not implemented */,
+            eol, unknown
             }
 
-        //|    identifier | number(double value) | leftParentheses | addOp | subOp | multOp | divOp | rightParentheses | eol | unknown;
+        //|     addOp | subOp | multOp | divOp | rightParentheses 
+        //|     | leftParentheses | number(double value) | identifier 
+        //|     | eol | unknown;
         //|
-        //| // The first grammar rules *= ... | ... | ... ; define the startsymbol, 
-        //| //  ?-1? gives a priority to solve a shift-reduce conflict.
-        //| *= additiveExpression(double result) ?-1?  
+        //| // The first grammar rule *= ... ; defines the startsymbol
+        //| *= MyGrammar;   
+        //|
+        //| //  The next line defines MyGrammar. ?-1? gives a priority to solve a shift-reduce conflict.
+        //| MyGrammar = additiveExpression(double result) ?-1?  
         void WriteResult(double result) { // grammlator analyzes this declaration and assigns it as semantic action to this alternative
             Console.WriteLine("Result = " + result);
             }
@@ -121,7 +130,7 @@ namespace grammlatorExampleEvaluateNumericExpression {
         //|   ;
         //|
         //| additiveExpression(double result)=
-        //|    multiplicativeExpression(double value) ?-40?
+        //|    multiplicativeExpression(double result) ?-40?
         //|    | additiveExpression(double leftAddend), addOp,  multiplicativeExpression(double rightAddend) ?-41?
         void Add(out double result, double leftAddend, double rightAddend) {
             result = leftAddend + rightAddend;
@@ -139,275 +148,294 @@ namespace grammlatorExampleEvaluateNumericExpression {
         void ComputeExpression() {
 
 
-            // ----------------------------- end of my (empty) user code part -----------------------
+            // ----------------------------- end of my user code part -----------------------
             //| ; /* this semicolon marks the end of the user code */
 
-            // This code has been generated by grammlator version 0:21 ( build 08.08.2016 14:57:50 +00:00)
+            // This code has been generated by Grammlator version 0:21 ( build 14.09.2016 11:23:14 +00:00)
             int StateStackInitialCount = _s.Count;
             int AttributeStackInitialCount = _a.Count;
 
             /* State 1 (1)
-            // *Startsymbol= ►additiveExpression(1:double result).   */
+            // *Startsymbol= ►MyGrammar;   */
             _s.Push(1); MySymbolInput.GetSymbol();
-            if (MySymbolInput.Symbol == eSymbol.identifier ||
-                  (MySymbolInput.Symbol >= eSymbol.multOp)) {
+            if ((MySymbolInput.Symbol >= eSymbol.multOp && MySymbolInput.Symbol <= eSymbol.rightParentheses) ||
+                  (MySymbolInput.Symbol >= eSymbol.identifier)) {
                 ErrorHandler(1);
                 goto x1;
                 }
-            if (MySymbolInput.Symbol == eSymbol.number)
+            if (MySymbolInput.Symbol == eSymbol.addOp)
+                goto as13;
+            if (MySymbolInput.Symbol == eSymbol.subOp)
                 goto as12;
             if (MySymbolInput.Symbol == eSymbol.leftParentheses)
-                goto as4;
-            if (MySymbolInput.Symbol == eSymbol.addOp)
-                goto as3;
+                goto as10;
 
-            as2: MySymbolInput.AcceptSymbol();
-            /* State 2 (2)
-            // unaryExpression(1:double value)= subOp, ►primaryExpression(1:double value).   */
-            _s.Push(2); MySymbolInput.GetSymbol();
-            if (MySymbolInput.Symbol == eSymbol.identifier ||
-                  (MySymbolInput.Symbol >= eSymbol.addOp)) {
-                ErrorHandler(2);
-                goto x1;
-                }
-            if (MySymbolInput.Symbol == eSymbol.number) { MySymbolInput.AcceptSymbol(); goto r1; }
-
-        as4: MySymbolInput.AcceptSymbol();
-            /* State 4 (4)
-            // paranthesizedExpression(1:double value)= leftParentheses, ►additiveExpression(1:double value), rightParentheses.   */
-            _s.Push(4); MySymbolInput.GetSymbol();
-            if (MySymbolInput.Symbol == eSymbol.identifier ||
-                  (MySymbolInput.Symbol >= eSymbol.multOp)) {
-                ErrorHandler(4);
-                goto x1;
-                }
-            if (MySymbolInput.Symbol == eSymbol.number)
-                goto as12;
-            if (MySymbolInput.Symbol == eSymbol.leftParentheses)
-                goto as4;
-            if (MySymbolInput.Symbol == eSymbol.addOp)
-                goto as3;
-            goto as2;
-
-        y0:
-            /* Branch 0*/
-            switch (_s.Peek()) {
-                /*case 1: case 4: */
-                default: break;
-                case 5: goto s7;
-                case 6: goto r5;
-                case 7: goto r6;
-                case 8: goto s11;
-                }
-
-        s12:
-            /* State 12 
-            // additiveExpression(1:double result)= multiplicativeExpression(1:double value)●.
-            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), ►multOp, unaryExpression(2:double multiplier).
-            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double dividend), ►divOp, unaryExpression(2:double divisor).   */
+            as9: MySymbolInput.AcceptSymbol();
+        s9:
+            /* State 9 
+            // additiveExpression(1:double result)= multiplicativeExpression(1:double result)●;
+            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), ►multOp, unaryExpression(2:double multiplier);
+            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double dividend), ►divOp, unaryExpression(2:double divisor);   */
             MySymbolInput.GetSymbol();
             if (MySymbolInput.Symbol <= eSymbol.subOp ||
                   (MySymbolInput.Symbol >= eSymbol.rightParentheses))
-                goto y2;
+                goto y0;
             if (MySymbolInput.Symbol == eSymbol.multOp)
-                goto as9;
-
-            as8: MySymbolInput.AcceptSymbol();
-            /* State 8 (6)
-            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double dividend), divOp, ►unaryExpression(2:double divisor).   */
-            _s.Push(6); MySymbolInput.GetSymbol();
-            if (MySymbolInput.Symbol == eSymbol.identifier ||
-                  (MySymbolInput.Symbol >= eSymbol.multOp)) {
-                ErrorHandler(8);
-                goto x1;
-                }
-            if (MySymbolInput.Symbol == eSymbol.leftParentheses)
-                goto as4;
-            if (MySymbolInput.Symbol == eSymbol.addOp)
-                goto as3;
-            if (MySymbolInput.Symbol == eSymbol.subOp)
-                goto as2;
-            MySymbolInput.AcceptSymbol();
-        r5:
-            /* Reduction 5, SSCorr = -1, ASCorr = -1 */
-            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double dividend), divOp, unaryExpression(2:double divisor).◄ Action Divide, AKK -1
-            _s.Pop(); Divide(result: out _a.a[_a.x - 1]._double, dividend: _a.a[_a.x - 1]._double, divisor: _a.a[_a.x - 0]._double); _a.Pop();
-            goto y0;
-
-        y2:
-            /* Branch 2*/
-            if (_s.Peek() == 1) {
-                /* State 13 
-                // *Startsymbol= additiveExpression(1:double result)●.
-                // additiveExpression(1:double result)= additiveExpression(1:double leftAddend), ►addOp, multiplicativeExpression(2:double rightAddend).
-                // additiveExpression(1:double result)= additiveExpression(1:double minuend), ►subOp, multiplicativeExpression(2:double subtrahend).   */
-                MySymbolInput.GetSymbol();
-                if (MySymbolInput.Symbol <= eSymbol.leftParentheses ||
-                      (MySymbolInput.Symbol >= eSymbol.multOp)) {
-                    /* Reduction 8, ASCorr = -1 */
-                    // *Startsymbol= additiveExpression(1:double result).◄ Priority -1, Action WriteResult, AKK -1
-                    WriteResult(result: _a.a[_a.x - 0]._double); _a.Pop();
-                    goto h1;
-                    }
-                if (MySymbolInput.Symbol == eSymbol.addOp)
-                    goto as10;
                 goto as6;
-                }
-            /* State 5 
-            // additiveExpression(1:double result)= additiveExpression(1:double leftAddend), ►addOp, multiplicativeExpression(2:double rightAddend).
-            // additiveExpression(1:double result)= additiveExpression(1:double minuend), ►subOp, multiplicativeExpression(2:double subtrahend).
-            // paranthesizedExpression(1:double value)= leftParentheses, additiveExpression(1:double value), ►rightParentheses.   */
-            MySymbolInput.GetSymbol();
-            if (MySymbolInput.Symbol <= eSymbol.leftParentheses ||
-                  (MySymbolInput.Symbol >= eSymbol.multOp && MySymbolInput.Symbol != eSymbol.rightParentheses)) {
+
+            as5: MySymbolInput.AcceptSymbol();
+            /* State 5 (3)
+            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double dividend), divOp, ►unaryExpression(2:double divisor);   */
+            _s.Push(3); MySymbolInput.GetSymbol();
+            if ((MySymbolInput.Symbol >= eSymbol.multOp && MySymbolInput.Symbol <= eSymbol.rightParentheses) ||
+                  (MySymbolInput.Symbol >= eSymbol.identifier)) {
                 ErrorHandler(5);
                 goto x1;
                 }
             if (MySymbolInput.Symbol == eSymbol.addOp)
-                goto as10;
+                goto as13;
             if (MySymbolInput.Symbol == eSymbol.subOp)
-                goto as6;
+                goto as12;
+            if (MySymbolInput.Symbol == eSymbol.leftParentheses)
+                goto as10;
             MySymbolInput.AcceptSymbol();
-            /* Reduction 3, SSCorr = -1 */
-            // paranthesizedExpression(1:double value)= leftParentheses, additiveExpression(1:double value), rightParentheses.◄ 
+        r4:
+            /* reduction 4, sStack: -1, aStack: -1 */
+            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double dividend), divOp, unaryExpression(2:double divisor);◄ method: Divide, aStack: -1
             _s.Pop();
+            Divide(
+               result: out _a.a[_a.x - 1]._double,
+               dividend: _a.a[_a.x - 1]._double,
+               divisor: _a.a[_a.x - 0]._double);
+            _a.Pop();
+
+        y1:
             /* Branch 1*/
             switch (_s.Peek()) {
-                /*case 1: case 4: */
+                /*case 2: */
                 default: break;
-                case 2: goto r1;
-                case 3: goto r2;
-                case 5: goto s7;
-                case 6: goto r5;
-                case 7: goto r6;
-                case 8: goto s11;
+                case 5: goto s8;
+                case 1: case 6: goto s9;
                 }
-            goto s12;
 
-        as3: MySymbolInput.AcceptSymbol();
-            /* State 3 (3)
-            // unaryExpression(1:double value)= addOp, ►primaryExpression(1:double value).   */
-            _s.Push(3); MySymbolInput.GetSymbol();
-            if (MySymbolInput.Symbol == eSymbol.identifier ||
-                  (MySymbolInput.Symbol >= eSymbol.addOp)) {
+        s4:
+            /* State 4 
+            // additiveExpression(1:double result)= additiveExpression(1:double minuend), subOp, multiplicativeExpression(2:double subtrahend)●;
+            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), ►multOp, unaryExpression(2:double multiplier);
+            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double dividend), ►divOp, unaryExpression(2:double divisor);   */
+            MySymbolInput.GetSymbol();
+            if (MySymbolInput.Symbol <= eSymbol.subOp ||
+                  (MySymbolInput.Symbol >= eSymbol.rightParentheses)) {
+                /* reduction 3, sStack: -1, aStack: -1 */
+                // additiveExpression(1:double result)= additiveExpression(1:double minuend), subOp, multiplicativeExpression(2:double subtrahend);◄ Priority: -42, method: Sub, aStack: -1
+                _s.Pop();
+                Sub(
+                   result: out _a.a[_a.x - 1]._double,
+                   minuend: _a.a[_a.x - 1]._double,
+                   subtrahend: _a.a[_a.x - 0]._double);
+                _a.Pop();
+                goto y0;
+                }
+            if (MySymbolInput.Symbol == eSymbol.multOp)
+                goto as6;
+            goto as5;
+
+        y0:
+            /* Branch 0*/
+            if (_s.Peek() == 6) {
+                /* State 11 
+                // additiveExpression(1:double result)= additiveExpression(1:double leftAddend), ►addOp, multiplicativeExpression(2:double rightAddend);
+                // additiveExpression(1:double result)= additiveExpression(1:double minuend), ►subOp, multiplicativeExpression(2:double subtrahend);
+                // paranthesizedExpression(1:double value)= leftParentheses, additiveExpression(1:double value), ►rightParentheses;   */
+                MySymbolInput.GetSymbol();
+                if ((MySymbolInput.Symbol >= eSymbol.multOp && MySymbolInput.Symbol != eSymbol.rightParentheses)) {
+                    ErrorHandler(11);
+                    goto x1;
+                    }
+                if (MySymbolInput.Symbol == eSymbol.addOp)
+                    goto as7;
+                if (MySymbolInput.Symbol == eSymbol.subOp)
+                    goto as3;
+                goto ar7;
+                }
+            /* State 2 
+            // MyGrammar= additiveExpression(1:double result)●;
+            // additiveExpression(1:double result)= additiveExpression(1:double leftAddend), ►addOp, multiplicativeExpression(2:double rightAddend);
+            // additiveExpression(1:double result)= additiveExpression(1:double minuend), ►subOp, multiplicativeExpression(2:double subtrahend);   */
+            MySymbolInput.GetSymbol();
+            if ((MySymbolInput.Symbol >= eSymbol.multOp)) {
+                /* reduction 2, aStack: -1 */
+                // MyGrammar= additiveExpression(1:double result);◄ Priority: -1, method: WriteResult, aStack: -1
+                // dann: // *Startsymbol= MyGrammar;◄ 
+
+                WriteResult(
+                   result: _a.a[_a.x - 0]._double);
+                _a.Pop();
+                // Halt: an alternative of the startsymbol with 0 attributes has been recognized.
+                _s.Pop();
+                goto EndOfGeneratedCode;
+                }
+            if (MySymbolInput.Symbol == eSymbol.addOp)
+                goto as7;
+
+            as3: MySymbolInput.AcceptSymbol();
+            /* State 3 (2)
+            // additiveExpression(1:double result)= additiveExpression(1:double minuend), subOp, ►multiplicativeExpression(2:double subtrahend);   */
+            _s.Push(2); MySymbolInput.GetSymbol();
+            if ((MySymbolInput.Symbol >= eSymbol.multOp && MySymbolInput.Symbol <= eSymbol.rightParentheses) ||
+                  (MySymbolInput.Symbol >= eSymbol.identifier)) {
                 ErrorHandler(3);
                 goto x1;
                 }
-            if (MySymbolInput.Symbol == eSymbol.number) { MySymbolInput.AcceptSymbol(); goto r2; }
-            goto as4;
+            if (MySymbolInput.Symbol == eSymbol.addOp)
+                goto as13;
+            if (MySymbolInput.Symbol == eSymbol.subOp)
+                goto as12;
+            if (MySymbolInput.Symbol == eSymbol.leftParentheses)
+                goto as10;
+            MySymbolInput.AcceptSymbol(); goto s4;
+
+        y2:
+            /* Branch 2*/
+            switch (_s.Peek()) {
+                /*case 1: case 6: */
+                default: break;
+                case 2: goto s4;
+                case 3: goto r4;
+                case 4: goto r5;
+                case 5: goto s8;
+                case 7: goto r8;
+                case 8: goto r7;
+                }
+            goto s9;
 
         as6: MySymbolInput.AcceptSymbol();
-            /* State 6 (5)
-            // additiveExpression(1:double result)= additiveExpression(1:double minuend), subOp, ►multiplicativeExpression(2:double subtrahend).   */
-            _s.Push(5); MySymbolInput.GetSymbol();
-            if (MySymbolInput.Symbol == eSymbol.identifier ||
-                  (MySymbolInput.Symbol >= eSymbol.multOp)) {
+            /* State 6 (4)
+            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), multOp, ►unaryExpression(2:double multiplier);   */
+            _s.Push(4); MySymbolInput.GetSymbol();
+            if ((MySymbolInput.Symbol >= eSymbol.multOp && MySymbolInput.Symbol <= eSymbol.rightParentheses) ||
+                  (MySymbolInput.Symbol >= eSymbol.identifier)) {
                 ErrorHandler(6);
                 goto x1;
                 }
-            if (MySymbolInput.Symbol == eSymbol.number) { MySymbolInput.AcceptSymbol(); goto s7; }
-            if (MySymbolInput.Symbol == eSymbol.leftParentheses)
-                goto as4;
             if (MySymbolInput.Symbol == eSymbol.addOp)
-                goto as3;
-            goto as2;
+                goto as13;
+            if (MySymbolInput.Symbol == eSymbol.subOp)
+                goto as12;
+            if (MySymbolInput.Symbol == eSymbol.leftParentheses)
+                goto as10;
+            MySymbolInput.AcceptSymbol();
+        r5:
+            /* reduction 5, sStack: -1, aStack: -1 */
+            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), multOp, unaryExpression(2:double multiplier);◄ method: Multiply, aStack: -1
+            _s.Pop();
+            Multiply(
+               result: out _a.a[_a.x - 1]._double,
+               multiplicand: _a.a[_a.x - 1]._double,
+               multiplier: _a.a[_a.x - 0]._double);
+            _a.Pop();
+            goto y1;
 
-        s7:
-            /* State 7 
-            // additiveExpression(1:double result)= additiveExpression(1:double minuend), subOp, multiplicativeExpression(2:double subtrahend)●.
-            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), ►multOp, unaryExpression(2:double multiplier).
-            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double dividend), ►divOp, unaryExpression(2:double divisor).   */
+        as7: MySymbolInput.AcceptSymbol();
+            /* State 7 (5)
+            // additiveExpression(1:double result)= additiveExpression(1:double leftAddend), addOp, ►multiplicativeExpression(2:double rightAddend);   */
+            _s.Push(5); MySymbolInput.GetSymbol();
+            if ((MySymbolInput.Symbol >= eSymbol.multOp && MySymbolInput.Symbol <= eSymbol.rightParentheses) ||
+                  (MySymbolInput.Symbol >= eSymbol.identifier)) {
+                ErrorHandler(7);
+                goto x1;
+                }
+            if (MySymbolInput.Symbol == eSymbol.addOp)
+                goto as13;
+            if (MySymbolInput.Symbol == eSymbol.subOp)
+                goto as12;
+            if (MySymbolInput.Symbol == eSymbol.leftParentheses)
+                goto as10;
+            MySymbolInput.AcceptSymbol();
+        s8:
+            /* State 8 
+            // additiveExpression(1:double result)= additiveExpression(1:double leftAddend), addOp, multiplicativeExpression(2:double rightAddend)●;
+            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), ►multOp, unaryExpression(2:double multiplier);
+            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double dividend), ►divOp, unaryExpression(2:double divisor);   */
             MySymbolInput.GetSymbol();
             if (MySymbolInput.Symbol <= eSymbol.subOp ||
                   (MySymbolInput.Symbol >= eSymbol.rightParentheses)) {
-                /* Reduction 4, SSCorr = -1, ASCorr = -1 */
-                // additiveExpression(1:double result)= additiveExpression(1:double minuend), subOp, multiplicativeExpression(2:double subtrahend).◄ Priority -42, Action Sub, AKK -1
-                _s.Pop(); Sub(result: out _a.a[_a.x - 1]._double, minuend: _a.a[_a.x - 1]._double, subtrahend: _a.a[_a.x - 0]._double); _a.Pop();
-                goto y2;
+                /* reduction 6, sStack: -1, aStack: -1 */
+                // additiveExpression(1:double result)= additiveExpression(1:double leftAddend), addOp, multiplicativeExpression(2:double rightAddend);◄ Priority: -41, method: Add, aStack: -1
+                _s.Pop();
+                Add(
+                   result: out _a.a[_a.x - 1]._double,
+                   leftAddend: _a.a[_a.x - 1]._double,
+                   rightAddend: _a.a[_a.x - 0]._double);
+                _a.Pop();
+                goto y0;
                 }
             if (MySymbolInput.Symbol == eSymbol.multOp)
-                goto as9;
-            goto as8;
-
-        as9: MySymbolInput.AcceptSymbol();
-            /* State 9 (7)
-            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), multOp, ►unaryExpression(2:double multiplier).   */
-            _s.Push(7); MySymbolInput.GetSymbol();
-            if (MySymbolInput.Symbol == eSymbol.identifier ||
-                  (MySymbolInput.Symbol >= eSymbol.multOp)) {
-                ErrorHandler(9);
-                goto x1;
-                }
-            if (MySymbolInput.Symbol == eSymbol.leftParentheses)
-                goto as4;
-            if (MySymbolInput.Symbol == eSymbol.addOp)
-                goto as3;
-            if (MySymbolInput.Symbol == eSymbol.subOp)
-                goto as2;
-            MySymbolInput.AcceptSymbol();
-        r6:
-            /* Reduction 6, SSCorr = -1, ASCorr = -1 */
-            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), multOp, unaryExpression(2:double multiplier).◄ Action Multiply, AKK -1
-            _s.Pop(); Multiply(result: out _a.a[_a.x - 1]._double, multiplicand: _a.a[_a.x - 1]._double, multiplier: _a.a[_a.x - 0]._double); _a.Pop();
-            goto y0;
+                goto as6;
+            goto as5;
 
         as10: MySymbolInput.AcceptSymbol();
-            /* State 10 (8)
-            // additiveExpression(1:double result)= additiveExpression(1:double leftAddend), addOp, ►multiplicativeExpression(2:double rightAddend).   */
-            _s.Push(8); MySymbolInput.GetSymbol();
-            if (MySymbolInput.Symbol == eSymbol.identifier ||
-                  (MySymbolInput.Symbol >= eSymbol.multOp)) {
+            /* State 10 (6)
+            // paranthesizedExpression(1:double value)= leftParentheses, ►additiveExpression(1:double value), rightParentheses;   */
+            _s.Push(6); MySymbolInput.GetSymbol();
+            if ((MySymbolInput.Symbol >= eSymbol.multOp && MySymbolInput.Symbol <= eSymbol.rightParentheses) ||
+                  (MySymbolInput.Symbol >= eSymbol.identifier)) {
                 ErrorHandler(10);
                 goto x1;
                 }
-            if (MySymbolInput.Symbol == eSymbol.number) { MySymbolInput.AcceptSymbol(); goto s11; }
-            if (MySymbolInput.Symbol == eSymbol.leftParentheses)
-                goto as4;
             if (MySymbolInput.Symbol == eSymbol.addOp)
-                goto as3;
-            goto as2;
+                goto as13;
+            if (MySymbolInput.Symbol == eSymbol.subOp)
+                goto as12;
+            if (MySymbolInput.Symbol == eSymbol.leftParentheses)
+                goto as10;
+            goto as9;
 
-        s11:
-            /* State 11 
-            // additiveExpression(1:double result)= additiveExpression(1:double leftAddend), addOp, multiplicativeExpression(2:double rightAddend)●.
-            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), ►multOp, unaryExpression(2:double multiplier).
-            // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double dividend), ►divOp, unaryExpression(2:double divisor).   */
-            MySymbolInput.GetSymbol();
-            if (MySymbolInput.Symbol <= eSymbol.subOp ||
-                  (MySymbolInput.Symbol >= eSymbol.rightParentheses)) {
-                /* Reduction 7, SSCorr = -1, ASCorr = -1 */
-                // additiveExpression(1:double result)= additiveExpression(1:double leftAddend), addOp, multiplicativeExpression(2:double rightAddend).◄ Priority -41, Action Add, AKK -1
-                _s.Pop(); Add(result: out _a.a[_a.x - 1]._double, leftAddend: _a.a[_a.x - 1]._double, rightAddend: _a.a[_a.x - 0]._double); _a.Pop();
-                goto y2;
+        as12: MySymbolInput.AcceptSymbol();
+            /* State 12 (7)
+            // unaryExpression(1:double value)= subOp, ►primaryExpression(1:double value);   */
+            _s.Push(7); MySymbolInput.GetSymbol();
+            if (MySymbolInput.Symbol == eSymbol.leftParentheses)
+                goto as10;
+            if (MySymbolInput.Symbol != eSymbol.number) {
+                ErrorHandler(12);
+                goto x1;
                 }
-            if (MySymbolInput.Symbol == eSymbol.multOp)
-                goto as9;
-            goto as8;
-
-        as12: MySymbolInput.AcceptSymbol(); goto s12;
-
-        r1:
-            /* Reduction 1, SSCorr = -1 */
-            // unaryExpression(1:double value)= subOp, primaryExpression(1:double value).◄ Action Negate
-            _s.Pop(); Negate(value: ref _a.a[_a.x - 0]._double);
-            goto y0;
-
-        r2:
-            /* Reduction 2, SSCorr = -1 */
-            // unaryExpression(1:double value)= addOp, primaryExpression(1:double value).◄ 
+            MySymbolInput.AcceptSymbol();
+        r8:
+            /* reduction 8, sStack: -1 */
+            // unaryExpression(1:double value)= subOp, primaryExpression(1:double value);◄ method: Negate
             _s.Pop();
-            goto y0;
+            Negate(
+               value: ref _a.a[_a.x - 0]._double);
+
+            goto y2;
+
+        as13: MySymbolInput.AcceptSymbol();
+            /* State 13 (8)
+            // unaryExpression(1:double value)= addOp, ►primaryExpression(1:double value);   */
+            _s.Push(8); MySymbolInput.GetSymbol();
+            if (MySymbolInput.Symbol == eSymbol.leftParentheses)
+                goto as10;
+            if (MySymbolInput.Symbol != eSymbol.number) {
+                ErrorHandler(13);
+                goto x1;
+                }
+
+        ar7: MySymbolInput.AcceptSymbol();
+        r7:
+            /* reduction 7, sStack: -1 */
+            // paranthesizedExpression(1:double value)= leftParentheses, additiveExpression(1:double value), rightParentheses;◄ 
+            _s.Pop();
+            goto y2;
 
         x1: // This point is reached after an input error has been handled if the handler didn't throw an exception
             _s.Pop(_s.Count - StateStackInitialCount);
             _a.Pop(_a.Count - AttributeStackInitialCount);
             goto EndOfGeneratedCode;
 
-        h1: // Halt: the startsymbol has been recognized.
-            _s.Pop();
-
         EndOfGeneratedCode:;
-            //| /* This is the last line of code generated by grammlator at 08.08.2016 15:03:32 */  ; 
+            //| /* This is the last line of code generated by Grammlator at 14.09.2016 11:24:20 */  ; 
             }
         }
 
