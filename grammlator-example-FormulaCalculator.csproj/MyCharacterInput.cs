@@ -15,7 +15,7 @@ namespace grammlatorExampleEvaluateNumericExpression {
         /// <param name="attributeStack">the attribute stack necessary to return attributes of symbol</param>
         public MyCharacterInputClass(AttributeStack attributeStack) : base(attributeStack) {
             inputLine = "";
-            column = inputLine.Length + 1; // column == inputLine.Length would be interpreted as end of line
+            Column = inputLine.Length + 1; // column == inputLine.Length would be interpreted as end of line
             Accepted = true; // there is no symbol to accept
             }
 
@@ -25,7 +25,7 @@ namespace grammlatorExampleEvaluateNumericExpression {
         /// inputLine[column] is the next not yet accepted character, except special handling of end of line.
         /// (column == inputLine.Length) is interpreted as end of line symbol. (column == inputLine.Length+1) after eol is accepted.
         /// </summary>
-        public int column { get; private set; }
+        public int Column { get; private set; }
 
         /// <summary>
         /// This method positions the input behind the end of the actual input line and returns the string of skipped characters.
@@ -33,9 +33,9 @@ namespace grammlatorExampleEvaluateNumericExpression {
         /// <returns>The string of skipped characters (without eol). Maybe the empty string.</returns>
         public string GetRemainigCharactersOfLine() {
             string result = "";
-            if (column < inputLine.Length)
-                result = inputLine.Substring(column);
-            column = inputLine.Length + 1;
+            if (Column < inputLine.Length)
+                result = inputLine.Substring(Column);
+            Column = inputLine.Length + 1;
             Accepted = true;
             return result;
             }
@@ -45,43 +45,41 @@ namespace grammlatorExampleEvaluateNumericExpression {
         /// The order of these identifiers is relevant, because they are used for comparisions (== but also <, <=, >=, >)
         /// </summary>
         public enum CharGroupEnumeration {
+            unknown, eol, ltChar, gtChar, equalChar,
             addOp, subOp, multOp, divOp, rightParentheses,
-            leftParentheses, digit, letter,
-            eol, unknown
+            leftParentheses, digit, letter, decimalPoint
             };
-        //public enum CharGroup { letter, digit, leftParentheses, rightParentheses, addOp, subOp, multOp, divOp, eol, unknown };
-
 
         /// <summary>
-        /// If accepted is true, then AcceptSymbol() does nothing, 
+        /// If Accepted is true, then AcceptSymbol() does nothing, 
         /// else column is incremented, all the attributes of Symbol are pushed to the attribute stack and accepted is set to true.
         /// </summary>
         public override void AcceptSymbol() {
             Debug.Assert(!Accepted);
             if (Accepted) return;
             base.AcceptSymbol();
-            column++;
+            Column++;
             }
 
         /// <summary>
-        /// If accepted is false, the GetSymbol() does nothing,
+        /// If accepted is false, the FetchSymbol() does nothing,
         /// else it will retrieve the next "Symbol" and store its attributes (if any) in private variables.
         /// </summary>
-        public override void GetSymbol() {
+        public override void FetchSymbol() {
             if (!Accepted) return;
             Accepted = false;
-            if (column > inputLine.Length) { // column == inputLine.Length: see below
+            if (Column > inputLine.Length) { // column == inputLine.Length: see below
                 inputLine = Console.ReadLine();
-                column = 0;
+                Column = 0;
                 };
 
             char c;  // character code of Symbol, pushed as attribute of Symbol to the attribute stack by AcceptSymbol()
 
-            if (column == inputLine.Length) {
+            if (Column == inputLine.Length) {
                 c = '\n'; // return eol
                 }
             else
-                c = inputLine[column];
+                c = inputLine[Column];
 
             if (char.IsDigit(c)) Symbol = CharGroupEnumeration.digit;
             else if (char.IsLetter(c)) Symbol = CharGroupEnumeration.letter;
@@ -93,7 +91,12 @@ namespace grammlatorExampleEvaluateNumericExpression {
                     case '/': Symbol = CharGroupEnumeration.divOp; break;
                     case '(': Symbol = CharGroupEnumeration.leftParentheses; break;
                     case ')': Symbol = CharGroupEnumeration.rightParentheses; break;
+                    case '=': Symbol = CharGroupEnumeration.equalChar; break;
+                    case '<': Symbol = CharGroupEnumeration.ltChar; break;
+                    case '>': Symbol = CharGroupEnumeration.gtChar; break;
                     case '\n': Symbol = CharGroupEnumeration.eol; break;
+                    case ',': Symbol = CharGroupEnumeration.decimalPoint; break;
+                    case '.': Symbol = CharGroupEnumeration.decimalPoint; break;
                     default: Symbol = CharGroupEnumeration.unknown; break;
                     }
 

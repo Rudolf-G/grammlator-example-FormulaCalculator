@@ -22,15 +22,11 @@
     /// </summary>
     /// <typeparam name="TypeOfSymbol">Type of the "Symbol" the instance makes available</typeparam>
     public interface IGrammlatorInput<TTypeOfOutputSymbols> where TTypeOfOutputSymbols : IComparable /* enum */ {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1721:PropertyNamesShouldNotMatchGetMethods")]
         TTypeOfOutputSymbols Symbol { get; }
         bool Accepted { get; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "a")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1707:IdentifiersShouldNotContainUnderscores")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "a")]
         AttributeStack _a { get; }
         void AcceptSymbol();
-        void GetSymbol();
+        void FetchSymbol();
         }
 
     /* Base classes
@@ -67,14 +63,14 @@
             }
 
         /// <summary>
-        /// After the first call of GetSymbol() Symbol will have a defined value.  The value can only be changed by GetSymbol().
+        /// After the first call of FetchSymbol() the field Symbol will have a defined value.  The value can only be changed by FetchSymbol().
         /// Symbol typically is used in comparisions in generated code.
         /// </summary>
         public TTypeOfOutputSymbols Symbol { get; protected set; }
 
         /// <summary>
-        /// When accepted is false, then calls to GetSymbol() do nothing, calls to AcceptSymbol() push all the attributes of Symbol to the attribute stack and set accepted to true.
-        /// When accepted is true, then calls to AcceptSymbol() do nothing, calls to GetSymbol() retrieve the next symbol and set accepted to false. 
+        /// When accepted is false, then calls to FetchSymbol() do nothing, calls to AcceptSymbol() push all the attributes of Symbol to the attribute stack and set accepted to true.
+        /// When accepted is true, then calls to AcceptSymbol() do nothing, calls to FetchSymbol() retrieve the next symbol and set accepted to false. 
         /// </summary>
         public bool Accepted
             {
@@ -105,7 +101,7 @@
         /// <summary>
         /// if accepted==true compute the next Symbol, push its attributes to AttributesOfSymbol and set accepted to false, else do nothing
         /// </summary>
-        public abstract void GetSymbol();
+        public abstract void FetchSymbol();
         }
 
     /// <summary>
@@ -115,21 +111,17 @@
     public abstract class GrammlatorApplication {
 
         /// <summary>
-        /// grammlator uses the attributeStack a) in grammlator generated code 
-        /// b) to return the attributes of output symbol (if any) and c) to get the attribute of input symbols
+        /// grammlator uses the attributeStack 
+        /// a) in grammlator generated code 
+        /// b) to return the attributes of output symbol (if any) and 
+        /// c) to get the attribute of input symbols
         /// Access to its elements is not type save.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "a")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1707:IdentifiersShouldNotContainUnderscores")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "a")]
         public AttributeStack _a { get; protected set; } // Check: access from semantic methods is not type save
 
         /// <summary>
         /// the state stack is used by grammlator generated code. Each class may have its own state stack. Different classes may share the same state stack.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "s")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1707:IdentifiersShouldNotContainUnderscores")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "s")]
         protected StateStack _s { get; }
 
         /// <summary>
@@ -159,9 +151,6 @@
         /// <summary>
         /// the state stack is used by grammlator generated code. Each class may have its own state stack. Different classes may share the same state stack.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "s")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1707:IdentifiersShouldNotContainUnderscores")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "s")]
         protected StateStack _s { get; }
 
         /// <summary>
@@ -213,7 +202,7 @@
      * Unfortunately C# neither allows a C# indexer nor a property to be used as a ref or out Parameter.
 
      * Attributes of the left side and of the right side of a production overlay in the stack of attributes.
-     * To avoid access conflicts attributes of the right side a translated to value parameters, so that
+     * To avoid access conflicts attributes of the right side are translated to value parameters, so that
      * the methods get a copy of the value. Attributes of the left side are translated to out parameters,
      * so that the method can assign values.
      * In special cases (overlapping attributes with identical identifiers and identical types) ref parameters
@@ -223,7 +212,7 @@
     /// <summary>
     /// Each element of the attribute stack stores one attribute of the actually processed productions of the grammar.
     /// Only one of the different fields of each stackelement is used at the same time.
-    /// The other fields contain old or undefined values and may be overitten by random binary patterns.
+    /// The other fields contain old or undefined values and may be overwritten by random binary patterns.
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
     public partial struct AttributeStruct { // must be extended by "partial" declarations
@@ -268,22 +257,18 @@
         // to overlap different value-fields and different class-fields in the stack, so that aditional types do not use additional space.
         // This option is demonstrated in the following comments.
 
-        // The aGaC runtime library does not contain predefined types.
+        // The grammlator runtime library does not contain predefined types.
         // All types used in the grammar are to be specified in a local partial definition.
 
         /// <summary>
         /// This array implements the stack of attributes. a[x] is the top of the stack.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1051:DoNotDeclareVisibleInstanceFields")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "a")]
         public AttributeStruct[] a; // a must be an array, not a property
 
 
         /// <summary>
         /// x is the index of the element on top of the stack a or -1 if the stack is empty
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1051:DoNotDeclareVisibleInstanceFields")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "x")]
         public int x = -1; // empty stack, no top element a[x]
 
         /// <summary>
@@ -296,7 +281,6 @@
         /// Increment the capacity of the stack if required.
         /// </summary>
         /// <param name="increment">number by which the stack count is incremented</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public void Reserve(int increment = 1) { // frühere Bezeichnung down(int anzahl)
             Debug.Assert(increment >= 0, "Argument of Reserve has to be >=0");
             x += increment;
@@ -324,7 +308,6 @@
         /// remove count elements from the stack: decrement index x after clearing the elements
         /// </summary>
         /// <param name="count">number of elements to remove >= 0</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public AttributeStruct Pop(int count = 1) {
             Debug.Assert(count >= 0, "Argument of Pop has to be >=0 !");
             Debug.Assert(count <= Count, "Argument of Pop has to be <=Count !");
@@ -408,17 +391,17 @@
             }
 
         IEnumerator<AttributeStruct> IEnumerable<AttributeStruct>.GetEnumerator() {
-            return new cAttributeStackEnumerator(this);
+            return new CAttributeStackEnumerator(this);
             }
 
 
         }
 
-    class cAttributeStackEnumerator: IEnumerator<AttributeStruct> {
+    class CAttributeStackEnumerator: IEnumerator<AttributeStruct> {
         int EnumeratePosition = -1;
 
         AttributeStack _a;
-        public cAttributeStackEnumerator(AttributeStack attributeStack) {
+        public CAttributeStackEnumerator(AttributeStack attributeStack) {
             _a = attributeStack;
             }
         public bool MoveNext() {
