@@ -45,7 +45,14 @@ namespace grammlatorExampleEvaluateNumericExpression {
         Dictionary<string, double> MyDictionary = new Dictionary<string, double>();
 
         public void ReadAndAnalyze() {
-
+            Console.WriteLine("This calculator evaluates single line numeric expressions with floating numbers,");
+            Console.WriteLine("unary operators + and - , arithmetic operators + and - (lower priority), * and / (higher priority).");
+            Console.WriteLine("You may use parentheses. You may define and use variables. Undefined variables have the value NaN.");
+            Console.WriteLine("Examples");
+            Console.WriteLine("12+99/3/-3");
+            Console.WriteLine("(12+99)/(3/-3)");
+            Console.WriteLine("Pi=355/113");
+            Console.WriteLine("3*Pi+5");
             // This is a manually programmed input loop with calls to ComputeExpression
             while (true) {
                 Console.WriteLine("Input a numeric expression or an empty line to stop the program:");
