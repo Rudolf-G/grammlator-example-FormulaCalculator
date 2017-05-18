@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace grammlatorExampleEvaluateNumericExpression {
+namespace GrammlatorExampleFormulaCalculator {
     class Program {
         static void Main(string[] args) {
            new ReadAndAnalyzeClass().ReadAndAnalyze();

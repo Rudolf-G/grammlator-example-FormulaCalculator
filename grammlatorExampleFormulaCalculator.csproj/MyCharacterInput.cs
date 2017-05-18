@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using GrammlatorRuntime;
 
-namespace grammlatorExampleEvaluateNumericExpression {
+namespace GrammlatorExampleFormulaCalculator {
     /// <summary>
     /// manually written class, which reads lines from console and provides the input character by character by the standard input methods for aGaC.
     /// The type of the provided symbols is cMyCharacterInput.CharGroup. The letter and the digit symbols have an attribute of type char.
@@ -45,9 +45,9 @@ namespace grammlatorExampleEvaluateNumericExpression {
         /// The order of these identifiers is relevant, because they are used for comparisions (== but also <, <=, >=, >)
         /// </summary>
         public enum CharGroupEnumeration {
-            unknown, eol, ltChar, gtChar, equalChar,
-            addOp, subOp, multOp, divOp, rightParentheses,
-            leftParentheses, digit, letter, decimalPoint
+            Unknown, Eol, LTChar, GTChar, EqualChar,
+            AddOp, SubOp, MultOp, DivOp, RightParentheses,
+            LeftParentheses, Digit, Letter, DecimalPoint
             };
 
         /// <summary>
@@ -81,28 +81,28 @@ namespace grammlatorExampleEvaluateNumericExpression {
             else
                 c = inputLine[Column];
 
-            if (char.IsDigit(c)) Symbol = CharGroupEnumeration.digit;
-            else if (char.IsLetter(c)) Symbol = CharGroupEnumeration.letter;
+            if (char.IsDigit(c)) Symbol = CharGroupEnumeration.Digit;
+            else if (char.IsLetter(c)) Symbol = CharGroupEnumeration.Letter;
             else
                 switch (c) {
-                    case '+': Symbol = CharGroupEnumeration.addOp; break;
-                    case '-': Symbol = CharGroupEnumeration.subOp; break;
-                    case '*': Symbol = CharGroupEnumeration.multOp; break;
-                    case '/': Symbol = CharGroupEnumeration.divOp; break;
-                    case '(': Symbol = CharGroupEnumeration.leftParentheses; break;
-                    case ')': Symbol = CharGroupEnumeration.rightParentheses; break;
-                    case '=': Symbol = CharGroupEnumeration.equalChar; break;
-                    case '<': Symbol = CharGroupEnumeration.ltChar; break;
-                    case '>': Symbol = CharGroupEnumeration.gtChar; break;
-                    case '\n': Symbol = CharGroupEnumeration.eol; break;
-                    case ',': Symbol = CharGroupEnumeration.decimalPoint; break;
-                    case '.': Symbol = CharGroupEnumeration.decimalPoint; break;
-                    default: Symbol = CharGroupEnumeration.unknown; break;
+                    case '+': Symbol = CharGroupEnumeration.AddOp; break;
+                    case '-': Symbol = CharGroupEnumeration.SubOp; break;
+                    case '*': Symbol = CharGroupEnumeration.MultOp; break;
+                    case '/': Symbol = CharGroupEnumeration.DivOp; break;
+                    case '(': Symbol = CharGroupEnumeration.LeftParentheses; break;
+                    case ')': Symbol = CharGroupEnumeration.RightParentheses; break;
+                    case '=': Symbol = CharGroupEnumeration.EqualChar; break;
+                    case '<': Symbol = CharGroupEnumeration.LTChar; break;
+                    case '>': Symbol = CharGroupEnumeration.GTChar; break;
+                    case '\n': Symbol = CharGroupEnumeration.Eol; break;
+                    case ',': Symbol = CharGroupEnumeration.DecimalPoint; break;
+                    case '.': Symbol = CharGroupEnumeration.DecimalPoint; break;
+                    default: Symbol = CharGroupEnumeration.Unknown; break;
                     }
 
             // Store attributes of symbol, if any, in AttributesOfSymbol.
             // Be careful, this direct access to the _char field of an element of the attribute stack is not type safe.
-            if (Symbol == CharGroupEnumeration.digit || Symbol == CharGroupEnumeration.letter) {
+            if (Symbol == CharGroupEnumeration.Digit || Symbol == CharGroupEnumeration.Letter) {
                 AttributesOfSymbol.Reserve(1);
                 AttributesOfSymbol.a[AttributesOfSymbol.x]._char = c;
                 }

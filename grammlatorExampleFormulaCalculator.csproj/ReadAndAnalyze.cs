@@ -18,7 +18,7 @@ namespace GrammlatorRuntime {
         }
     }
 
-namespace grammlatorExampleEvaluateNumericExpression {
+namespace GrammlatorExampleFormulaCalculator {
     using System.Collections.Generic;
     using System.Diagnostics;
     // Simplify access to the enumeration values the input accessor Symbol may assume
@@ -59,7 +59,7 @@ namespace grammlatorExampleEvaluateNumericExpression {
 
                 // Look ahead one input symbol to check for empty line
                 MyCharInput.FetchSymbol();
-                if (MyCharInput.Symbol == CharGroupEnumeration.eol) {
+                if (MyCharInput.Symbol == CharGroupEnumeration.Eol) {
                     break;
                     }
 
@@ -71,7 +71,7 @@ namespace grammlatorExampleEvaluateNumericExpression {
                 // Therefore ComputeExpression() returns as soon as a look ahead input symbol can not be accepted. 
 
                 string RemainingCharacters = MySymbolInput.GetRemainigCharactersOfLine();
-                if (RemainingCharacters != "") {
+                if (!string.IsNullOrEmpty(RemainingCharacters)) {
                     Console.WriteLine("Remainig characters ignored: '" + RemainingCharacters + "'");
                     }
 
@@ -101,13 +101,13 @@ namespace grammlatorExampleEvaluateNumericExpression {
         //|
         //| MySymbolInput, SymbolEnum = 
         public enum CopyOfMySymbolInput_SymbolEnum { // these definition is not yet evaluated by grammlator
-            unknown, eol, ltChar, gtChar, equalChar,
-            addOp, subOp, multOp, divOp, rightParentheses,
-            leftParentheses, number, identifier
+            Unknown, Eol, LTChar, GTChar, EqualChar,
+            AddOp, SubOp, MultOp, DivOp, RightParentheses,
+            LeftParentheses, Number, Identifier
             }
-        //|    unknown | eol | ltChar | gtChar | equalChar
-        //|    | addOp | subOp | multOp | divOp | rightParentheses 
-        //|    | leftParentheses | number(double value) | identifier (string identifier)
+        //|    Unknown | Eol | LTChar | GTChar | EqualChar
+        //|    | AddOp | SubOp | MultOp | DivOp | RightParentheses 
+        //|    | LeftParentheses | Number(double value) | Identifier (string identifier)
         //|    ;
         //|
         //| // The first grammar rule *= ... ; defines the startsymbol
@@ -117,7 +117,7 @@ namespace grammlatorExampleEvaluateNumericExpression {
         //| //  Priority -1 and -2 solve a shift-reduce conflicts when next character is addOp or subOp
         //| MyGrammar = 
         //|    additiveExpression(double result) ?-1?  
-        void WriteResult(double result) { // grammlator analyzes this declaration and assigns it as semantic action to this alternative
+        static void WriteResult(double result) { // grammlator analyzes this declaration and assigns it as semantic action to this alternative
             Console.WriteLine("Result = " + result);
             }
         //|    | identifier(string identifier), equalChar, additiveExpression(double result) ?-2?
@@ -150,28 +150,28 @@ namespace grammlatorExampleEvaluateNumericExpression {
         //|    primaryExpression(double value) 
         //|    | addOp, primaryExpression(double value) 
         //|    | subOp, primaryExpression(double value) 
-        void Negate(ref double value) { value = -value; }
+        static void Negate(ref double value) { value = -value; }
         //|   ;
         //| 
         //| multiplicativeExpression(double result)=
         //|    unaryExpression(double result) 
         //|    | multiplicativeExpression(double multiplicand), multOp,  unaryExpression(double multiplier) 
-        void Multiply(out double result, double multiplicand, double multiplier) { result = multiplicand * multiplier; }
+        static void Multiply(out double result, double multiplicand, double multiplier) { result = multiplicand * multiplier; }
 
         //|    | multiplicativeExpression(double dividend), divOp,   unaryExpression(double divisor) 
-        void Divide(out double result, double dividend, double divisor) { result = dividend / divisor; }
+        static void Divide(out double result, double dividend, double divisor) { result = dividend / divisor; }
         //|   ;
         //|
         //| // Priorities -40 and -41 solve the conflict, when the next symbol is multOp or divOp
         //| additiveExpression(double result)=
         //|    multiplicativeExpression(double result) ?-40?
         //|    | additiveExpression(double leftAddend), addOp,  multiplicativeExpression(double rightAddend) ?-41?
-        void Add(out double result, double leftAddend, double rightAddend) {
+        static void Add(out double result, double leftAddend, double rightAddend) {
             result = leftAddend + rightAddend;
             }
 
         //|    | additiveExpression(double minuend), subOp, multiplicativeExpression(double subtrahend)?-42?
-        void Sub(out double result, double minuend, double subtrahend) { result = minuend - subtrahend; }
+        static void Sub(out double result, double minuend, double subtrahend) { result = minuend - subtrahend; }
         //|   ;
         //| 
         //|
@@ -192,40 +192,40 @@ namespace grammlatorExampleEvaluateNumericExpression {
   /* State 1 (1)
   // *Startsymbol= ►MyGrammar;   */
   _s.Push(1); MySymbolInput.FetchSymbol(); 
-  if (  MySymbolInput.Symbol <= SymbolEnum.equalChar || 
-        (MySymbolInput.Symbol >= SymbolEnum.multOp && MySymbolInput.Symbol <= SymbolEnum.rightParentheses)) 
+  if (  MySymbolInput.Symbol <= SymbolEnum.EqualChar || 
+        (MySymbolInput.Symbol >= SymbolEnum.MultOp && MySymbolInput.Symbol <= SymbolEnum.RightParentheses)) 
      {ErrorHandler(1); 
      goto x1; } 
-  if (  MySymbolInput.Symbol == SymbolEnum.addOp) 
+  if (  MySymbolInput.Symbol == SymbolEnum.AddOp) 
      goto as16; 
-  if (  MySymbolInput.Symbol == SymbolEnum.subOp) 
+  if (  MySymbolInput.Symbol == SymbolEnum.SubOp) 
      goto as15; 
-  if (  MySymbolInput.Symbol == SymbolEnum.leftParentheses) 
+  if (  MySymbolInput.Symbol == SymbolEnum.LeftParentheses) 
      goto as13; 
-  if (  MySymbolInput.Symbol == SymbolEnum.number) 
+  if (  MySymbolInput.Symbol == SymbolEnum.Number) 
      goto as12; 
   MySymbolInput.AcceptSymbol(); 
   /* State 9 
   // MyGrammar= identifier(1:string identifier), ►equalChar, additiveExpression(2:double result);
   // primaryExpression(1:double value)= identifier(1:string identifier)●;   */
   MySymbolInput.FetchSymbol(); 
-  if (  MySymbolInput.Symbol != SymbolEnum.equalChar) 
+  if (  MySymbolInput.Symbol != SymbolEnum.EqualChar) 
      goto r11; 
   MySymbolInput.AcceptSymbol(); 
   /* State 10 (6)
   // MyGrammar= identifier(1:string identifier), equalChar, ►additiveExpression(2:double result);   */
   _s.Push(6); MySymbolInput.FetchSymbol(); 
-  if (  MySymbolInput.Symbol <= SymbolEnum.equalChar || 
-        (MySymbolInput.Symbol >= SymbolEnum.multOp && MySymbolInput.Symbol <= SymbolEnum.rightParentheses)) 
+  if (  MySymbolInput.Symbol <= SymbolEnum.EqualChar || 
+        (MySymbolInput.Symbol >= SymbolEnum.MultOp && MySymbolInput.Symbol <= SymbolEnum.RightParentheses)) 
      {ErrorHandler(10); 
      goto x1; } 
-  if (  MySymbolInput.Symbol == SymbolEnum.addOp) 
+  if (  MySymbolInput.Symbol == SymbolEnum.AddOp) 
      goto as16; 
-  if (  MySymbolInput.Symbol == SymbolEnum.subOp) 
+  if (  MySymbolInput.Symbol == SymbolEnum.SubOp) 
      goto as15; 
-  if (  MySymbolInput.Symbol == SymbolEnum.leftParentheses) 
+  if (  MySymbolInput.Symbol == SymbolEnum.LeftParentheses) 
      goto as13; 
-  if (  MySymbolInput.Symbol == SymbolEnum.number) 
+  if (  MySymbolInput.Symbol == SymbolEnum.Number) 
      goto as12; 
   
 ar11: MySymbolInput.AcceptSymbol(); 
@@ -244,27 +244,27 @@ s12:
   // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), ►multOp, unaryExpression(2:double multiplier);
   // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double dividend), ►divOp, unaryExpression(2:double divisor);   */
   MySymbolInput.FetchSymbol(); 
-  if (  MySymbolInput.Symbol <= SymbolEnum.subOp || 
-        (MySymbolInput.Symbol >= SymbolEnum.rightParentheses)) 
+  if (  MySymbolInput.Symbol <= SymbolEnum.SubOp || 
+        (MySymbolInput.Symbol >= SymbolEnum.RightParentheses)) 
      goto y0; 
-  if (  MySymbolInput.Symbol == SymbolEnum.multOp) 
+  if (  MySymbolInput.Symbol == SymbolEnum.MultOp) 
      goto as6; 
   
 as5: MySymbolInput.AcceptSymbol(); 
   /* State 5 (3)
   // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double dividend), divOp, ►unaryExpression(2:double divisor);   */
   _s.Push(3); MySymbolInput.FetchSymbol(); 
-  if (  MySymbolInput.Symbol <= SymbolEnum.equalChar || 
-        (MySymbolInput.Symbol >= SymbolEnum.multOp && MySymbolInput.Symbol <= SymbolEnum.rightParentheses)) 
+  if (  MySymbolInput.Symbol <= SymbolEnum.EqualChar || 
+        (MySymbolInput.Symbol >= SymbolEnum.MultOp && MySymbolInput.Symbol <= SymbolEnum.RightParentheses)) 
      {ErrorHandler(5); 
      goto x1; } 
-  if (  MySymbolInput.Symbol == SymbolEnum.addOp) 
+  if (  MySymbolInput.Symbol == SymbolEnum.AddOp) 
      goto as16; 
-  if (  MySymbolInput.Symbol == SymbolEnum.subOp) 
+  if (  MySymbolInput.Symbol == SymbolEnum.SubOp) 
      goto as15; 
-  if (  MySymbolInput.Symbol == SymbolEnum.leftParentheses) 
+  if (  MySymbolInput.Symbol == SymbolEnum.LeftParentheses) 
      goto as13; 
-  if (  MySymbolInput.Symbol == SymbolEnum.number) 
+  if (  MySymbolInput.Symbol == SymbolEnum.Number) 
      {MySymbolInput.AcceptSymbol(); goto r5; } 
   MySymbolInput.AcceptSymbol(); 
   /* reduction 6 */
@@ -299,8 +299,8 @@ s4:
   // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), ►multOp, unaryExpression(2:double multiplier);
   // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double dividend), ►divOp, unaryExpression(2:double divisor);   */
   MySymbolInput.FetchSymbol(); 
-  if (  MySymbolInput.Symbol <= SymbolEnum.subOp || 
-        (MySymbolInput.Symbol >= SymbolEnum.rightParentheses)) 
+  if (  MySymbolInput.Symbol <= SymbolEnum.SubOp || 
+        (MySymbolInput.Symbol >= SymbolEnum.RightParentheses)) 
      {
      /* reduction 4, sStack: -1, aStack: -1 */
      // additiveExpression(1:double result)= additiveExpression(1:double minuend), subOp, multiplicativeExpression(2:double subtrahend);◄ Priority: -42, method: Sub, aStack: -1
@@ -311,7 +311,7 @@ s4:
         subtrahend: _a.a[_a.x - 0]._double); 
      _a.Pop(); 
      goto y0; } 
-  if (  MySymbolInput.Symbol == SymbolEnum.multOp) 
+  if (  MySymbolInput.Symbol == SymbolEnum.MultOp) 
      goto as6; 
   goto as5; 
   
@@ -325,8 +325,8 @@ y0:
      // additiveExpression(1:double result)= additiveExpression(1:double leftAddend), ►addOp, multiplicativeExpression(2:double rightAddend);
      // additiveExpression(1:double result)= additiveExpression(1:double minuend), ►subOp, multiplicativeExpression(2:double subtrahend);   */
      MySymbolInput.FetchSymbol(); 
-     if (  MySymbolInput.Symbol <= SymbolEnum.equalChar || 
-           (MySymbolInput.Symbol >= SymbolEnum.multOp)) 
+     if (  MySymbolInput.Symbol <= SymbolEnum.EqualChar || 
+           (MySymbolInput.Symbol >= SymbolEnum.MultOp)) 
         {
         /* reduction 12, sStack: -1, aStack: -2 */
         // MyGrammar= identifier(1:string identifier), equalChar, additiveExpression(2:double result);◄ Priority: -2, method: AssignValueToIdentifier, aStack: -2
@@ -337,7 +337,7 @@ y0:
            result: _a.a[_a.x - 0]._double); 
         _a.Pop(2); 
         goto h1; } 
-     if (  MySymbolInput.Symbol == SymbolEnum.addOp) 
+     if (  MySymbolInput.Symbol == SymbolEnum.AddOp) 
         goto as7; 
      goto as3; } 
   case 7: {
@@ -346,13 +346,13 @@ y0:
      // additiveExpression(1:double result)= additiveExpression(1:double minuend), ►subOp, multiplicativeExpression(2:double subtrahend);
      // paranthesizedExpression(1:double value)= leftParentheses, additiveExpression(1:double value), ►rightParentheses;   */
      MySymbolInput.FetchSymbol(); 
-     if (  MySymbolInput.Symbol <= SymbolEnum.equalChar || 
-           (MySymbolInput.Symbol >= SymbolEnum.multOp && MySymbolInput.Symbol != SymbolEnum.rightParentheses)) 
+     if (  MySymbolInput.Symbol <= SymbolEnum.EqualChar || 
+           (MySymbolInput.Symbol >= SymbolEnum.MultOp && MySymbolInput.Symbol != SymbolEnum.RightParentheses)) 
         {ErrorHandler(14); 
         goto x1; } 
-     if (  MySymbolInput.Symbol == SymbolEnum.addOp) 
+     if (  MySymbolInput.Symbol == SymbolEnum.AddOp) 
         goto as7; 
-     if (  MySymbolInput.Symbol == SymbolEnum.subOp) 
+     if (  MySymbolInput.Symbol == SymbolEnum.SubOp) 
         goto as3; 
      goto ar13; } 
   } 
@@ -361,8 +361,8 @@ y0:
   // additiveExpression(1:double result)= additiveExpression(1:double leftAddend), ►addOp, multiplicativeExpression(2:double rightAddend);
   // additiveExpression(1:double result)= additiveExpression(1:double minuend), ►subOp, multiplicativeExpression(2:double subtrahend);   */
   MySymbolInput.FetchSymbol(); 
-  if (  MySymbolInput.Symbol <= SymbolEnum.equalChar || 
-        (MySymbolInput.Symbol >= SymbolEnum.multOp)) 
+  if (  MySymbolInput.Symbol <= SymbolEnum.EqualChar || 
+        (MySymbolInput.Symbol >= SymbolEnum.MultOp)) 
      {
      /* reduction 2, aStack: -1 */
      // MyGrammar= additiveExpression(1:double result);◄ Priority: -1, method: WriteResult, aStack: -1
@@ -372,24 +372,24 @@ y0:
         result: _a.a[_a.x - 0]._double); 
      _a.Pop(); 
      goto h1; } 
-  if (  MySymbolInput.Symbol == SymbolEnum.addOp) 
+  if (  MySymbolInput.Symbol == SymbolEnum.AddOp) 
      goto as7; 
   
 as3: MySymbolInput.AcceptSymbol(); 
   /* State 3 (2)
   // additiveExpression(1:double result)= additiveExpression(1:double minuend), subOp, ►multiplicativeExpression(2:double subtrahend);   */
   _s.Push(2); MySymbolInput.FetchSymbol(); 
-  if (  MySymbolInput.Symbol <= SymbolEnum.equalChar || 
-        (MySymbolInput.Symbol >= SymbolEnum.multOp && MySymbolInput.Symbol <= SymbolEnum.rightParentheses)) 
+  if (  MySymbolInput.Symbol <= SymbolEnum.EqualChar || 
+        (MySymbolInput.Symbol >= SymbolEnum.MultOp && MySymbolInput.Symbol <= SymbolEnum.RightParentheses)) 
      {ErrorHandler(3); 
      goto x1; } 
-  if (  MySymbolInput.Symbol == SymbolEnum.addOp) 
+  if (  MySymbolInput.Symbol == SymbolEnum.AddOp) 
      goto as16; 
-  if (  MySymbolInput.Symbol == SymbolEnum.subOp) 
+  if (  MySymbolInput.Symbol == SymbolEnum.SubOp) 
      goto as15; 
-  if (  MySymbolInput.Symbol == SymbolEnum.leftParentheses) 
+  if (  MySymbolInput.Symbol == SymbolEnum.LeftParentheses) 
      goto as13; 
-  if (  MySymbolInput.Symbol == SymbolEnum.number) 
+  if (  MySymbolInput.Symbol == SymbolEnum.Number) 
      {MySymbolInput.AcceptSymbol(); goto s4; } 
   MySymbolInput.AcceptSymbol(); 
   /* reduction 3 */
@@ -418,17 +418,17 @@ as6: MySymbolInput.AcceptSymbol();
   /* State 6 (4)
   // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), multOp, ►unaryExpression(2:double multiplier);   */
   _s.Push(4); MySymbolInput.FetchSymbol(); 
-  if (  MySymbolInput.Symbol <= SymbolEnum.equalChar || 
-        (MySymbolInput.Symbol >= SymbolEnum.multOp && MySymbolInput.Symbol <= SymbolEnum.rightParentheses)) 
+  if (  MySymbolInput.Symbol <= SymbolEnum.EqualChar || 
+        (MySymbolInput.Symbol >= SymbolEnum.MultOp && MySymbolInput.Symbol <= SymbolEnum.RightParentheses)) 
      {ErrorHandler(6); 
      goto x1; } 
-  if (  MySymbolInput.Symbol == SymbolEnum.addOp) 
+  if (  MySymbolInput.Symbol == SymbolEnum.AddOp) 
      goto as16; 
-  if (  MySymbolInput.Symbol == SymbolEnum.subOp) 
+  if (  MySymbolInput.Symbol == SymbolEnum.SubOp) 
      goto as15; 
-  if (  MySymbolInput.Symbol == SymbolEnum.leftParentheses) 
+  if (  MySymbolInput.Symbol == SymbolEnum.LeftParentheses) 
      goto as13; 
-  if (  MySymbolInput.Symbol == SymbolEnum.number) 
+  if (  MySymbolInput.Symbol == SymbolEnum.Number) 
      {MySymbolInput.AcceptSymbol(); goto r7; } 
   MySymbolInput.AcceptSymbol(); 
   /* reduction 8 */
@@ -454,17 +454,17 @@ as7: MySymbolInput.AcceptSymbol();
   /* State 7 (5)
   // additiveExpression(1:double result)= additiveExpression(1:double leftAddend), addOp, ►multiplicativeExpression(2:double rightAddend);   */
   _s.Push(5); MySymbolInput.FetchSymbol(); 
-  if (  MySymbolInput.Symbol <= SymbolEnum.equalChar || 
-        (MySymbolInput.Symbol >= SymbolEnum.multOp && MySymbolInput.Symbol <= SymbolEnum.rightParentheses)) 
+  if (  MySymbolInput.Symbol <= SymbolEnum.EqualChar || 
+        (MySymbolInput.Symbol >= SymbolEnum.MultOp && MySymbolInput.Symbol <= SymbolEnum.RightParentheses)) 
      {ErrorHandler(7); 
      goto x1; } 
-  if (  MySymbolInput.Symbol == SymbolEnum.addOp) 
+  if (  MySymbolInput.Symbol == SymbolEnum.AddOp) 
      goto as16; 
-  if (  MySymbolInput.Symbol == SymbolEnum.subOp) 
+  if (  MySymbolInput.Symbol == SymbolEnum.SubOp) 
      goto as15; 
-  if (  MySymbolInput.Symbol == SymbolEnum.leftParentheses) 
+  if (  MySymbolInput.Symbol == SymbolEnum.LeftParentheses) 
      goto as13; 
-  if (  MySymbolInput.Symbol == SymbolEnum.number) 
+  if (  MySymbolInput.Symbol == SymbolEnum.Number) 
      {MySymbolInput.AcceptSymbol(); goto s8; } 
   MySymbolInput.AcceptSymbol(); 
   /* reduction 9 */
@@ -481,8 +481,8 @@ s8:
   // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), ►multOp, unaryExpression(2:double multiplier);
   // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double dividend), ►divOp, unaryExpression(2:double divisor);   */
   MySymbolInput.FetchSymbol(); 
-  if (  MySymbolInput.Symbol <= SymbolEnum.subOp || 
-        (MySymbolInput.Symbol >= SymbolEnum.rightParentheses)) 
+  if (  MySymbolInput.Symbol <= SymbolEnum.SubOp || 
+        (MySymbolInput.Symbol >= SymbolEnum.RightParentheses)) 
      {
      /* reduction 10, sStack: -1, aStack: -1 */
      // additiveExpression(1:double result)= additiveExpression(1:double leftAddend), addOp, multiplicativeExpression(2:double rightAddend);◄ Priority: -41, method: Add, aStack: -1
@@ -493,7 +493,7 @@ s8:
         rightAddend: _a.a[_a.x - 0]._double); 
      _a.Pop(); 
      goto y0; } 
-  if (  MySymbolInput.Symbol == SymbolEnum.multOp) 
+  if (  MySymbolInput.Symbol == SymbolEnum.MultOp) 
      goto as6; 
   goto as5; 
   
@@ -503,17 +503,17 @@ as13: MySymbolInput.AcceptSymbol();
   /* State 13 (7)
   // paranthesizedExpression(1:double value)= leftParentheses, ►additiveExpression(1:double value), rightParentheses;   */
   _s.Push(7); MySymbolInput.FetchSymbol(); 
-  if (  MySymbolInput.Symbol <= SymbolEnum.equalChar || 
-        (MySymbolInput.Symbol >= SymbolEnum.multOp && MySymbolInput.Symbol <= SymbolEnum.rightParentheses)) 
+  if (  MySymbolInput.Symbol <= SymbolEnum.EqualChar || 
+        (MySymbolInput.Symbol >= SymbolEnum.MultOp && MySymbolInput.Symbol <= SymbolEnum.RightParentheses)) 
      {ErrorHandler(13); 
      goto x1; } 
-  if (  MySymbolInput.Symbol == SymbolEnum.addOp) 
+  if (  MySymbolInput.Symbol == SymbolEnum.AddOp) 
      goto as16; 
-  if (  MySymbolInput.Symbol == SymbolEnum.subOp) 
+  if (  MySymbolInput.Symbol == SymbolEnum.SubOp) 
      goto as15; 
-  if (  MySymbolInput.Symbol == SymbolEnum.leftParentheses) 
+  if (  MySymbolInput.Symbol == SymbolEnum.LeftParentheses) 
      goto as13; 
-  if (  MySymbolInput.Symbol == SymbolEnum.number) 
+  if (  MySymbolInput.Symbol == SymbolEnum.Number) 
      goto as12; 
   goto ar11; 
   
@@ -521,12 +521,12 @@ as15: MySymbolInput.AcceptSymbol();
   /* State 15 (8)
   // unaryExpression(1:double value)= subOp, ►primaryExpression(1:double value);   */
   _s.Push(8); MySymbolInput.FetchSymbol(); 
-  if (  MySymbolInput.Symbol <= SymbolEnum.rightParentheses) 
+  if (  MySymbolInput.Symbol <= SymbolEnum.RightParentheses) 
      {ErrorHandler(15); 
      goto x1; } 
-  if (  MySymbolInput.Symbol == SymbolEnum.leftParentheses) 
+  if (  MySymbolInput.Symbol == SymbolEnum.LeftParentheses) 
      goto as13; 
-  if (  MySymbolInput.Symbol == SymbolEnum.number) 
+  if (  MySymbolInput.Symbol == SymbolEnum.Number) 
      {MySymbolInput.AcceptSymbol(); goto r14; } 
   MySymbolInput.AcceptSymbol(); 
   /* reduction 15 */
@@ -550,12 +550,12 @@ as16: MySymbolInput.AcceptSymbol();
   /* State 16 (9)
   // unaryExpression(1:double value)= addOp, ►primaryExpression(1:double value);   */
   _s.Push(9); MySymbolInput.FetchSymbol(); 
-  if (  MySymbolInput.Symbol <= SymbolEnum.rightParentheses) 
+  if (  MySymbolInput.Symbol <= SymbolEnum.RightParentheses) 
      {ErrorHandler(16); 
      goto x1; } 
-  if (  MySymbolInput.Symbol == SymbolEnum.leftParentheses) 
+  if (  MySymbolInput.Symbol == SymbolEnum.LeftParentheses) 
      goto as13; 
-  if (  MySymbolInput.Symbol == SymbolEnum.number) 
+  if (  MySymbolInput.Symbol == SymbolEnum.Number) 
      goto ar13; 
   MySymbolInput.AcceptSymbol(); 
   /* reduction 16, sStack: -1 */
