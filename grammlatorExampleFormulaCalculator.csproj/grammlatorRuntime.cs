@@ -44,18 +44,18 @@
 
         /// <summary>
         /// grammlator uses the attributeStack
-        /// a) in grammlator generated code 
-        /// b) to return the attributes of output symbol (if any)
-        /// c) to get the attribute of input symbols
-        /// Access to the elements of the attribute stack is not type save.
+        /// <para/>a) in grammlator generated code
+        /// <para/>b) to return the attributes of output symbol (if any)
+        /// <para/>c) to get the attribute of input symbols
+        /// <para/>Access to the elements of the attribute stack is not type save.
         /// </summary>
         public AttributeStack _a { get; protected set; } // Check: access from semantic methods is not type save
 
         /// <summary>
         /// Constructor of cGrammlatorInputApplication
         /// </summary>
-        /// <param name="attributeStack">grammlator uses the attributeStack a) in grammlator generated code 
-        /// b) to return the attributes of output symbol (if any) and c) to get the attribute of input symbols
+        /// <param name="attributeStack">grammlator uses the attributeStack <para/>a) in grammlator generated code 
+        /// <para/>b) to return the attributes of output symbol (if any) and <para/>c) to get the attribute of input symbols
         /// </param>
         protected GrammlatorInput(AttributeStack attributeStack) {
             _a = attributeStack;
