@@ -101,15 +101,15 @@ namespace GrammlatorExampleFormulaCalculator {
         //|   and of the terminal symbols of the grammar with their respectiv semantic attributes */
         //|
         //| MySymbolInput, SymbolEnum = 
+        //|    Unknown | Eol | LTChar | GTChar | EqualChar
+        //|    | AddOp | SubOp | MultOp | DivOp | RightParentheses 
+        //|    | LeftParentheses | Number(double value) | Identifier (string identifier)
+        //|    ;
         public enum CopyOfMySymbolInput_SymbolEnum { // these definition is not yet evaluated by grammlator
             Unknown, Eol, LTChar, GTChar, EqualChar,
             AddOp, SubOp, MultOp, DivOp, RightParentheses,
             LeftParentheses, Number, Identifier
             }
-        //|    Unknown | Eol | LTChar | GTChar | EqualChar
-        //|    | AddOp | SubOp | MultOp | DivOp | RightParentheses 
-        //|    | LeftParentheses | Number(double value) | Identifier (string identifier)
-        //|    ;
         //|
         //| // The first grammar rule *= ... ; defines the startsymbol
         //| *= MyGrammar;   
@@ -177,7 +177,7 @@ namespace GrammlatorExampleFormulaCalculator {
         //| 
         //|
         //| 
-        //| ; /* this semicolon marks the end of the grammar */
+        //| /* The following semicolon marks the end of the grammar */ ;
         #endregion grammar
 
         // The following few lines up to #region and the lines after #endregion are programmed manually
@@ -189,7 +189,7 @@ namespace GrammlatorExampleFormulaCalculator {
 
             // the contens of the region "grammlator generated" are (replaced and) inserted by grammlator
 
-            #region grammlator generated: Grammlator version 0:21 ( build 22.05.2017 08:47:38 +00:00)
+            #region grammlator generated 09.06.2017 by Grammlator version 0:21 ( build 09.06.2017 21:27:42 +00:00)
             int StateStackInitialCount = _s.Count;
             int AttributeStackInitialCount = _a.Count;
 
@@ -238,7 +238,7 @@ namespace GrammlatorExampleFormulaCalculator {
 
             ar11:
             MySymbolInput.AcceptSymbol();
-        r11:
+            r11:
             /* reduction 11 */
             // primaryExpression(1:double value)= Identifier(1:string identifier);◄ Priority: -21, method: IdentifierInExpression
 
@@ -247,7 +247,7 @@ namespace GrammlatorExampleFormulaCalculator {
                identifier: _a.a[_a.x - 0]._string);
 
 
-        s12:
+            s12:
             /* State 12 
             // additiveExpression(1:double result)= multiplicativeExpression(1:double result)●;
             // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), ►MultOp, unaryExpression(2:double multiplier);
@@ -286,7 +286,7 @@ namespace GrammlatorExampleFormulaCalculator {
                identifier: _a.a[_a.x - 0]._string);
 
 
-        r5:
+            r5:
             /* reduction 5, sStack: -1, aStack: -1 */
             // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double dividend), DivOp, unaryExpression(2:double divisor);◄ method: Divide, aStack: -1
             _s.Pop();
@@ -296,7 +296,7 @@ namespace GrammlatorExampleFormulaCalculator {
                divisor: _a.a[_a.x - 0]._double);
             _a.Pop();
 
-        y1:
+            y1:
             /* Branch 1*/
             switch (_s.Peek()) {
                 /*case 2: */
@@ -310,7 +310,7 @@ namespace GrammlatorExampleFormulaCalculator {
                     goto s12;
                 }
 
-        s4:
+            s4:
             /* State 4 
             // additiveExpression(1:double result)= additiveExpression(1:double minuend), SubOp, multiplicativeExpression(2:double subtrahend)●;
             // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), ►MultOp, unaryExpression(2:double multiplier);
@@ -332,7 +332,7 @@ namespace GrammlatorExampleFormulaCalculator {
                 goto as6;
             goto as5;
 
-        y0:
+            y0:
             /* Branch 0*/
             switch (_s.Peek()) {
                 /*case 1: */
@@ -425,7 +425,7 @@ namespace GrammlatorExampleFormulaCalculator {
 
             goto s4;
 
-        y2:
+            y2:
             /* Branch 2*/
             switch (_s.Peek()) {
                 /*case 1: case 6: case 7: */
@@ -446,7 +446,7 @@ namespace GrammlatorExampleFormulaCalculator {
                 }
             goto s12;
 
-        as6:
+            as6:
             MySymbolInput.AcceptSymbol();
             /* State 6 (4)
             // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), MultOp, ►unaryExpression(2:double multiplier);   */
@@ -473,7 +473,7 @@ namespace GrammlatorExampleFormulaCalculator {
                identifier: _a.a[_a.x - 0]._string);
 
 
-        r7:
+            r7:
             /* reduction 7, sStack: -1, aStack: -1 */
             // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), MultOp, unaryExpression(2:double multiplier);◄ method: Multiply, aStack: -1
             _s.Pop();
@@ -484,7 +484,7 @@ namespace GrammlatorExampleFormulaCalculator {
             _a.Pop();
             goto y1;
 
-        as7:
+            as7:
             MySymbolInput.AcceptSymbol();
             /* State 7 (5)
             // additiveExpression(1:double result)= additiveExpression(1:double leftAddend), AddOp, ►multiplicativeExpression(2:double rightAddend);   */
@@ -511,7 +511,7 @@ namespace GrammlatorExampleFormulaCalculator {
                identifier: _a.a[_a.x - 0]._string);
 
 
-        s8:
+            s8:
             /* State 8 
             // additiveExpression(1:double result)= additiveExpression(1:double leftAddend), AddOp, multiplicativeExpression(2:double rightAddend)●;
             // multiplicativeExpression(1:double result)= multiplicativeExpression(1:double multiplicand), ►MultOp, unaryExpression(2:double multiplier);
@@ -533,11 +533,11 @@ namespace GrammlatorExampleFormulaCalculator {
                 goto as6;
             goto as5;
 
-        as12:
+            as12:
             MySymbolInput.AcceptSymbol();
             goto s12;
 
-        as13:
+            as13:
             MySymbolInput.AcceptSymbol();
             /* State 13 (7)
             // paranthesizedExpression(1:double value)= LeftParentheses, ►additiveExpression(1:double value), RightParentheses;   */
@@ -558,7 +558,7 @@ namespace GrammlatorExampleFormulaCalculator {
                 goto as12;
             goto ar11;
 
-        as15:
+            as15:
             MySymbolInput.AcceptSymbol();
             /* State 15 (8)
             // unaryExpression(1:double value)= SubOp, ►primaryExpression(1:double value);   */
@@ -580,7 +580,7 @@ namespace GrammlatorExampleFormulaCalculator {
                identifier: _a.a[_a.x - 0]._string);
 
 
-        r14:
+            r14:
             /* reduction 14, sStack: -1 */
             // unaryExpression(1:double value)= SubOp, primaryExpression(1:double value);◄ method: Negate
             _s.Pop();
@@ -589,7 +589,7 @@ namespace GrammlatorExampleFormulaCalculator {
 
             goto y2;
 
-        as16:
+            as16:
             MySymbolInput.AcceptSymbol();
             /* State 16 (9)
             // unaryExpression(1:double value)= AddOp, ►primaryExpression(1:double value);   */
@@ -614,26 +614,26 @@ namespace GrammlatorExampleFormulaCalculator {
 
             goto y2;
 
-        ar13:
+            ar13:
             MySymbolInput.AcceptSymbol();
-        r13:
+            r13:
             /* reduction 13, sStack: -1 */
             // paranthesizedExpression(1:double value)= LeftParentheses, additiveExpression(1:double value), RightParentheses;◄ 
             _s.Pop();
             goto y2;
 
-        h1: // Halt: an alternative of the startsymbol with 0 attributes has been recognized.
+            h1: // Halt: a definition of the startsymbol with 0 attributes has been recognized.
             _s.Pop();
             goto EndOfGeneratedCode;
 
-        x1: // This point is reached after an input error has been handled if the handler didn't throw an exception
+            x1: // This point is reached after an input error has been handled if the handler didn't throw an exception
             _s.Pop(_s.Count - StateStackInitialCount);
             _a.Pop(_a.Count - AttributeStackInitialCount);
             goto EndOfGeneratedCode;
 
-        EndOfGeneratedCode:
+            EndOfGeneratedCode:
             ;
-            #endregion grammlator generated: Grammlator at 22.05.2017 08:47:54 */  ;
+            #endregion grammlator generated 09.06.2017 21:28:57
 
             }
         }

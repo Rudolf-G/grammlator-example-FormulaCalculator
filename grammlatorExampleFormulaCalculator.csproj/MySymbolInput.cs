@@ -38,38 +38,27 @@ namespace GrammlatorExampleFormulaCalculator {
         //|    There in addition the attributes of each terminal symbol must be specified exactly as provided by MyCharacterInput.
         //| */
         //| MyCharacterInput, CharGroupEnum = 
-        public enum CopyOFCharGroupDefinitionForDocumentation {
-            // The C# enum at this place is optional. If present the terminal definitions below must coincide.
-            Unknown, Eol, LTChar, GTChar, EqualChar,
-            AddOp, SubOp, MultOp, DivOp, RightParentheses,
-            LeftParentheses, Digit, Letter, DecimalPoint
-            };
         //|    Unknown | Eol | LTChar | GTChar | EqualChar
         //|    | AddOp | SubOp | MultOp | DivOp | RightParentheses 
         //|    | LeftParentheses | Digit(char value) | Letter(char value)  
         //|    | DecimalPoint 
         //|    ;
+        public enum CopyOFCharGroupDefinitionForDocumentation {
+            // The C# enum at this place is optional. If present it must conicide with the terminal definitions above.
+            Unknown, Eol, LTChar, GTChar, EqualChar,
+            AddOp, SubOp, MultOp, DivOp, RightParentheses, LeftParentheses,
+            Digit, Letter, DecimalPoint
+            };
         //|
-        //|    /* The atributes of the terminal symbols are defined by a type identifier and an attribute identifier.
+        //|    /* The attributes of the terminal symbols are defined by a type identifier and an attribute identifier.
         //|       The attribute type must be exactly as given by MyCharacterInput. The identifier has only documentary purposes.
         //|
         //|       The following first grammar rule defines the Startsymbol, which is identified by * and can not be used as a nonterminal symbol.
-        //|       When an alternative of the startsymbol is recognized its attributes are considered to be attributes of the Symbol which is
+        //|       When a definition of the startsymbol is recognized its attributes are considered to be attributes of the symbol which is
         //|       returned as result of FetchSymbol() defined below.
         //|      */
         //|
         //| *=   // C# definition of the symbols which MySymbolInput may recognize. The C# code in the following lines can also be placed outside of the grammar.
-
-        /// <summary>
-        /// The enum eSymbol defines the set of values which can be assigned to this.Symbol by semantic methods.
-        /// These identifiers and their order are used in the generated code in ReadAndAnalyze for comparisions (== but also <, <=, >=, >)
-        /// </summary>
-        public enum SymbolEnum {
-            Unknown, Eol, LTChar, GTChar, EqualChar,
-            AddOp, SubOp, MultOp, DivOp, RightParentheses,
-            LeftParentheses, Number, Identifier
-            }
-
         //|       Number(double value) 
         void AssignNumberToSymbol() {
             Symbol = SymbolEnum.Number; // value will be assigned by grammlator generated code
@@ -81,29 +70,41 @@ namespace GrammlatorExampleFormulaCalculator {
             }
         //|       | SymbolToPassOn
         private void PassSymbolOn() {
-            // This is a short but not trivial solution to pass input symbols as result to the calling method.
-            // Precondition is the consistent definition of the enumerations of input symbols and output symbols.
+            /* This is a short but not trivial solution to pass input symbols as result to the calling method.
+             * Precondition is the consistent definition of the enumerations of input symbols and output symbols. */
             Symbol = (SymbolEnum)(MyCharacterInput.Symbol);
-            // Accessing the last input character by MyCharacterInput.Symbol
-            // does only work, because the SymbolToPassOn does not cause look ahead.
+            /* Accessing the last input character by MyCharacterInput.Symbol
+             * does only work, because the SymbolToPassOn does not cause look ahead. */
             Debug.Assert(MyCharacterInput.Accepted);
             }
         //|   ;
-        //|    
+
+        /// <summary>
+        /// The enum SymbolEnum defines the set of values which can be assigned to this.Symbol by semantic methods.
+        /// These identifiers and their order are used in the generated code in ReadAndAnalyze for comparisions (== but also &lt;, &gt;=, &gt;=, &gt;)
+        /// </summary>
+        public enum SymbolEnum {
+            // These symbols are passed on from input to output (see Method PassSymbolOn(..)):
+            Unknown, Eol, LTChar, GTChar, EqualChar,
+            AddOp, SubOp, MultOp, DivOp, RightParentheses, LeftParentheses,
+            // These symbols are computed by MySymbolInput.cs:
+            Number, Identifier
+            }
+
         //|    
         //| SymbolToPassOn=
-        //|       AddOp
+        //|         Unknown
+        //|       | Eol
+        //|       | LTChar 
+        //|       | GTChar
+        //|       | EqualChar 
+        //|       | AddOp
         //|       | SubOp 
         //|       | MultOp
         //|       | DivOp
         //|       | RightParentheses
         //|       | LeftParentheses
-        //|       | EqualChar 
-        //|       | LTChar 
-        //|       | GTChar
-        //|       | Eol
-        //|       | Unknown
-        //| ;
+        //|   ;
         //|
         //| integer(double value, int length)= 
         //|    Digit(char c)
@@ -144,7 +145,7 @@ namespace GrammlatorExampleFormulaCalculator {
         //|       ;
         //|
 
-        //| ; /* this semicolon marks the end of the grammar */
+        //| /* the following semicolon marks the end of the grammar: */ ;
         #endregion grammar
 
         //  The following few lines up to #region and the lines after #endregion are programmed manually
@@ -160,7 +161,7 @@ namespace GrammlatorExampleFormulaCalculator {
             Accepted = false;
 
             // the contens of the region "grammlator generated" are (replaced and) inserted by grammlator
-            #region grammlator generated: Grammlator version 0:21 ( build 22.05.2017 08:47:38 +00:00)
+            #region grammlator generated 09.06.2017 by Grammlator version 0:21 ( build 09.06.2017 21:27:42 +00:00)
             int AttributeStackInitialCount = _a.Count;
 
             /* State 1 
@@ -179,7 +180,7 @@ namespace GrammlatorExampleFormulaCalculator {
 
                 PassSymbolOn();
 
-                // Halt: an alternative of the startsymbol with 0 attributes has been recognized.
+                // Halt: a definition of the startsymbol with 0 attributes has been recognized.
                 goto EndOfGeneratedCode;
                 }
             if (MyCharacterInput.Symbol == CharGroupEnum.Digit) {
@@ -203,7 +204,7 @@ namespace GrammlatorExampleFormulaCalculator {
                c: _a.a[_a.x - 0]._char);
 
 
-        s5:
+            s5:
             /* State 5 
             // *Startsymbol= Identifier(1:string identifier)●;
             // Identifier(1:string identifier)= Identifier(1:string identifier), ►letterOrDigit(2:char c);   */
@@ -227,7 +228,7 @@ namespace GrammlatorExampleFormulaCalculator {
             _a.Pop();
             goto s5;
 
-        s2:
+            s2:
             /* State 2 
             // Number(1:double value)= integer(1:double value, 2:int notUsed)●;
             // Number(1:double value)= integer(1:double value, 2:int notUsed), ►DecimalPoint, integer(3:double valueOfDigits, 4:int numberOfDigits);
@@ -272,7 +273,7 @@ namespace GrammlatorExampleFormulaCalculator {
                c: _a.a[_a.x - 1]._char);
 
 
-        s4:
+            s4:
             /* State 4 
             // Number(1:double value)= integer(1:double value, 2:int notUsed), DecimalPoint, integer(3:double valueOfDigits, 4:int numberOfDigits)●;
             // integer(1:double value, 2:int length)= integer(1:double value, 2:int length), ►Digit(3:char nextDigit);   */
@@ -304,17 +305,17 @@ namespace GrammlatorExampleFormulaCalculator {
             _a.Pop();
             goto s4;
 
-        h2: // Halt: an alternative of the startsymbol with 1 attributes has been recognized.
+            h2: // Halt: a definition of the startsymbol with 1 attributes has been recognized.
             AttributesOfSymbol.CopyAndRemoveFrom(_a, 1);
             goto EndOfGeneratedCode;
 
-        x1: // This point is reached after an input error has been handled if the handler didn't throw an exception
+            x1: // This point is reached after an input error has been handled if the handler didn't throw an exception
             _a.Pop(_a.Count - AttributeStackInitialCount);
             goto EndOfGeneratedCode;
 
-        EndOfGeneratedCode:
+            EndOfGeneratedCode:
             ;
-            #endregion grammlator generated: Grammlator at 22.05.2017 08:48:41 */  ;
+            #endregion grammlator generated 09.06.2017 21:49:32
 
             }
         }
