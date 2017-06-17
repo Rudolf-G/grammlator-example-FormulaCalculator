@@ -3,6 +3,7 @@ using GrammlatorRuntime;
 
 // Simplify access to the enumeration values the input Symbol may assume
 using CharGroupEnum = GrammlatorExampleFormulaCalculator.MyCharacterInputClass.CharGroupEnumeration;
+using System;
 
 namespace GrammlatorExampleFormulaCalculator {
     public class MySymbolInputClass : GrammlatorInputApplication<MySymbolInputClass.SymbolEnum> {
@@ -13,10 +14,13 @@ namespace GrammlatorExampleFormulaCalculator {
         MyCharacterInputClass MyCharacterInput;
 
         // Constructor
-        public MySymbolInputClass(AttributeStack attributeStack, StateStack stateStack, MyCharacterInputClass myCharacterInput)
+        public MySymbolInputClass(AttributeStack attributeStack, StateStack stateStack, MyCharacterInputClass myCharacterInput, Action<int, string, string> externalErrorHandler)
             : base(attributeStack, stateStack) {
             MyCharacterInput = myCharacterInput;
+            ExternalErrorHandler = externalErrorHandler;
             }
+
+        Action<int, string, string> ExternalErrorHandler;
 
         // The GetRemainigCharactersOfLine method is specific to this example
 
@@ -24,9 +28,21 @@ namespace GrammlatorExampleFormulaCalculator {
         /// This method positions the input behind the end of the actual input line and returns the string of skipped characters.
         /// </summary>
         /// <returns>The string of skipped characters (without eol). Maybe the empty string.</returns>
-        public string GetRemainigCharactersOfLine() {
+        public string GetRemainingCharactersOfLine() {
             AcceptSymbol();
             return MyCharacterInput.GetRemainigCharactersOfLine();
+            }
+
+        void ErrorHandler(int i, string stateDescription) {
+            /* A lexical error will occur, if the first character is a decimal point 
+             * or if a character other than a digit follows a decimal point.
+             * If the grammar would allow numbers with decimal point but no digits in front or after the decimal point
+             * no errors would occur.
+             */
+             // Call the error handler defined by the constructor
+            ExternalErrorHandler(i, MyCharacterInput.Symbol.ToString(), stateDescription);
+            // Return "Unknown" as the result of this call of the lexical analyzer
+            Symbol = SymbolEnum.Unknown;
             }
 
         #region grammar
@@ -150,33 +166,30 @@ namespace GrammlatorExampleFormulaCalculator {
 
         //  The following few lines up to #region and the lines after #endregion are programmed manually
 
-        static private void ErrorHandler(int i) {
-            // will be called if the first input character is a letter
-            return;
-            }
-
         public override void FetchSymbol() {
             if (!Accepted)
                 return;
             Accepted = false;
 
             // the contens of the region "grammlator generated" are (replaced and) inserted by grammlator
-            #region grammlator generated 09.06.2017 by Grammlator version 0:21 ( build 09.06.2017 21:27:42 +00:00)
+            #region grammlator generated 17.06.2017 by Grammlator version 0:21 ( build 16.06.2017 19:54:24 +00:00)
             int AttributeStackInitialCount = _a.Count;
-
-            /* State 1 
-            // *Startsymbol= ►Number(1:double value);
-            // *Startsymbol= ►Identifier(1:string identifier);
-            // *Startsymbol= ►SymbolToPassOn;   */
+            string StateDescription;
+            // State 1 
+            StateDescription =
+                 "*Startsymbol= ►Number(double value);" + Environment.NewLine
+               + "*Startsymbol= ►Identifier(string identifier);" + Environment.NewLine
+               + "*Startsymbol= ►SymbolToPassOn;";
             MyCharacterInput.FetchSymbol();
             if (MyCharacterInput.Symbol == CharGroupEnum.DecimalPoint) {
-                ErrorHandler(1);
+                ErrorHandler(1, StateDescription);
                 goto x1;
                 }
             if (MyCharacterInput.Symbol <= CharGroupEnum.LeftParentheses) {
                 MyCharacterInput.AcceptSymbol();
-                /* reduction 1 */
-                // *Startsymbol= SymbolToPassOn;◄ method: PassSymbolOn
+                /* Reduction 1
+                *Startsymbol= SymbolToPassOn;◄ method: PassSymbolOn
+                 */
 
                 PassSymbolOn();
 
@@ -185,9 +198,11 @@ namespace GrammlatorExampleFormulaCalculator {
                 }
             if (MyCharacterInput.Symbol == CharGroupEnum.Digit) {
                 MyCharacterInput.AcceptSymbol();
-                /* reduction 2, aStack: 1 */
-                // integer(1:double value, 2:int length)= Digit(1:char c);◄ aStack: 1, method: FirstdigitOfNumberRecognized
+                /* Reduction 2, aStack: 1
+                integer(double value, int length)= Digit(char c);◄ aStack: 1, method: FirstdigitOfNumberRecognized
+                 */
                 _a.Reserve();
+
                 FirstdigitOfNumberRecognized(
                    value: out _a.a[_a.x - 1]._double,
                    length: out _a.a[_a.x - 0]._int,
@@ -196,126 +211,144 @@ namespace GrammlatorExampleFormulaCalculator {
                 goto s2;
                 }
             MyCharacterInput.AcceptSymbol();
-            /* reduction 3 */
-            // Identifier(1:string identifier)= Letter(1:char c);◄ method: FirstCharOfIdentifierRecognized
+            /* Reduction 3
+            Identifier(string identifier)= Letter(char c);◄ method: FirstCharOfIdentifierRecognized
+             */
 
             FirstCharOfIdentifierRecognized(
                identifier: out _a.a[_a.x - 0]._string,
                c: _a.a[_a.x - 0]._char);
 
-
             s5:
-            /* State 5 
-            // *Startsymbol= Identifier(1:string identifier)●;
-            // Identifier(1:string identifier)= Identifier(1:string identifier), ►letterOrDigit(2:char c);   */
+            // State 5 
+            StateDescription =
+                 "*Startsymbol= Identifier(string identifier)●;" + Environment.NewLine
+               + "Identifier(string identifier)= Identifier(string identifier), ►letterOrDigit(char c);";
             MyCharacterInput.FetchSymbol();
             if (MyCharacterInput.Symbol <= CharGroupEnum.LeftParentheses ||
                   MyCharacterInput.Symbol == CharGroupEnum.DecimalPoint) {
-                /* reduction 10 */
-                // *Startsymbol= Identifier(1:string identifier);◄ Priority: -1, method: AssignIdentifierToSymbol, aStack: -1
+                /* Reduction 10
+                *Startsymbol= Identifier(string identifier);◄ Priority: -1, method: AssignIdentifierToSymbol, aStack: -1
+                 */
 
                 AssignIdentifierToSymbol();
 
                 goto h2;
                 }
             MyCharacterInput.AcceptSymbol();
-            /* reduction 11, aStack: -1 */
-            // Identifier(1:string identifier)= Identifier(1:string identifier), letterOrDigit(2:char c);◄ method: OneMoreCharacterOfIdentifierRecognized, aStack: -1
+            /* Reduction 11, aStack: -1
+            Identifier(string identifier)= Identifier(string identifier), letterOrDigit(char c);◄ method: OneMoreCharacterOfIdentifierRecognized, aStack: -1
+             */
 
             OneMoreCharacterOfIdentifierRecognized(
                identifier: ref _a.a[_a.x - 1]._string,
                c: _a.a[_a.x - 0]._char);
+
             _a.Pop();
             goto s5;
 
             s2:
-            /* State 2 
-            // Number(1:double value)= integer(1:double value, 2:int notUsed)●;
-            // Number(1:double value)= integer(1:double value, 2:int notUsed), ►DecimalPoint, integer(3:double valueOfDigits, 4:int numberOfDigits);
-            // integer(1:double value, 2:int length)= integer(1:double value, 2:int length), ►Digit(3:char nextDigit);   */
+            // State 2 
+            StateDescription =
+                 "Number(double value)= integer(double value, int notUsed)●;" + Environment.NewLine
+               + "Number(double value)= integer(double value, int notUsed), ►DecimalPoint, integer(double valueOfDigits, int numberOfDigits);" + Environment.NewLine
+               + "integer(double value, int length)= integer(double value, int length), ►Digit(char nextDigit);";
             MyCharacterInput.FetchSymbol();
-            if ((MyCharacterInput.Symbol != CharGroupEnum.Digit && MyCharacterInput.Symbol != CharGroupEnum.DecimalPoint)) {
-                /* reduction 5, aStack: -1 */
-                // Number(1:double value)= integer(1:double value, 2:int notUsed);◄ Priority: -10, aStack: -1
-                // dann: // *Startsymbol= Number(1:double value);◄ method: AssignNumberToSymbol, aStack: -1
+            if ((MyCharacterInput.Symbol != CharGroupEnum.Digit
+                   && MyCharacterInput.Symbol != CharGroupEnum.DecimalPoint)) {
+                /* Reduction 5, aStack: -1
+                Number(double value)= integer(double value, int notUsed);◄ Priority: -10, aStack: -1
+                // dann: *Startsymbol= Number(double value);◄ method: AssignNumberToSymbol, aStack: -1
+                 */
                 _a.Pop();
+
                 AssignNumberToSymbol();
 
                 goto h2;
                 }
             if (MyCharacterInput.Symbol == CharGroupEnum.Digit) {
                 MyCharacterInput.AcceptSymbol();
-                /* reduction 6, aStack: -1 */
-                // integer(1:double value, 2:int length)= integer(1:double value, 2:int length), Digit(3:char nextDigit);◄ method: IntegerFollowedByDigitRecognized, aStack: -1
+                /* Reduction 6, aStack: -1
+                integer(double value, int length)= integer(double value, int length), Digit(char nextDigit);◄ method: IntegerFollowedByDigitRecognized, aStack: -1
+                 */
 
                 IntegerFollowedByDigitRecognized(
                    value: ref _a.a[_a.x - 2]._double,
                    length: ref _a.a[_a.x - 1]._int,
                    nextDigit: _a.a[_a.x - 0]._char);
+
                 _a.Pop();
                 goto s2;
                 }
             MyCharacterInput.AcceptSymbol();
-            /* State 3 
-            // Number(1:double value)= integer(1:double value, 2:int notUsed), DecimalPoint, ►integer(3:double valueOfDigits, 4:int numberOfDigits);   */
+            // State 3 
+            StateDescription =
+                 "Number(double value)= integer(double value, int notUsed), DecimalPoint, ►integer(double valueOfDigits, int numberOfDigits);";
             MyCharacterInput.FetchSymbol();
             if (MyCharacterInput.Symbol != CharGroupEnum.Digit) {
-                ErrorHandler(3);
+                ErrorHandler(3, StateDescription);
                 goto x1;
                 }
             MyCharacterInput.AcceptSymbol();
-            /* reduction 7, aStack: 1 */
-            // integer(1:double value, 2:int length)= Digit(1:char c);◄ aStack: 1, method: FirstdigitOfNumberRecognized
+            /* Reduction 7, aStack: 1
+            integer(double value, int length)= Digit(char c);◄ aStack: 1, method: FirstdigitOfNumberRecognized
+             */
             _a.Reserve();
+
             FirstdigitOfNumberRecognized(
                value: out _a.a[_a.x - 1]._double,
                length: out _a.a[_a.x - 0]._int,
                c: _a.a[_a.x - 1]._char);
 
-
             s4:
-            /* State 4 
-            // Number(1:double value)= integer(1:double value, 2:int notUsed), DecimalPoint, integer(3:double valueOfDigits, 4:int numberOfDigits)●;
-            // integer(1:double value, 2:int length)= integer(1:double value, 2:int length), ►Digit(3:char nextDigit);   */
+            // State 4 
+            StateDescription =
+                 "Number(double value)= integer(double value, int notUsed), DecimalPoint, integer(double valueOfDigits, int numberOfDigits)●;" + Environment.NewLine
+               + "integer(double value, int length)= integer(double value, int length), ►Digit(char nextDigit);";
             MyCharacterInput.FetchSymbol();
             if (MyCharacterInput.Symbol != CharGroupEnum.Digit) {
-                /* reduction 8, aStack: -3 */
-                // Number(1:double value)= integer(1:double value, 2:int notUsed), DecimalPoint, integer(3:double valueOfDigits, 4:int numberOfDigits);◄ Priority: -11, method: NumberWithDigitsRecognized, aStack: -3
+                /* Reduction 8, aStack: -3
+                Number(double value)= integer(double value, int notUsed), DecimalPoint, integer(double valueOfDigits, int numberOfDigits);◄ Priority: -11, method: NumberWithDigitsRecognized, aStack: -3
+                 */
 
                 NumberWithDigitsRecognized(
                    value: ref _a.a[_a.x - 3]._double,
                    valueOfDigits: _a.a[_a.x - 1]._double,
                    numberOfDigits: _a.a[_a.x - 0]._int);
+
                 _a.Pop(3);
-                /* reduction 4 */
-                // *Startsymbol= Number(1:double value);◄ method: AssignNumberToSymbol, aStack: -1
+                /* Reduction 4
+                *Startsymbol= Number(double value);◄ method: AssignNumberToSymbol, aStack: -1
+                 */
 
                 AssignNumberToSymbol();
 
                 goto h2;
                 }
             MyCharacterInput.AcceptSymbol();
-            /* reduction 9, aStack: -1 */
-            // integer(1:double value, 2:int length)= integer(1:double value, 2:int length), Digit(3:char nextDigit);◄ method: IntegerFollowedByDigitRecognized, aStack: -1
+            /* Reduction 9, aStack: -1
+            integer(double value, int length)= integer(double value, int length), Digit(char nextDigit);◄ method: IntegerFollowedByDigitRecognized, aStack: -1
+             */
 
             IntegerFollowedByDigitRecognized(
                value: ref _a.a[_a.x - 2]._double,
                length: ref _a.a[_a.x - 1]._int,
                nextDigit: _a.a[_a.x - 0]._char);
+
             _a.Pop();
             goto s4;
 
-            h2: // Halt: a definition of the startsymbol with 1 attributes has been recognized.
+            h2:
+            // Halt: a definition of the startsymbol with 1 attributes has been recognized.
             AttributesOfSymbol.CopyAndRemoveFrom(_a, 1);
             goto EndOfGeneratedCode;
-
-            x1: // This point is reached after an input error has been handled if the handler didn't throw an exception
+            x1:
+            // This point is reached after an input error has been handled if the handler didn't throw an exception
             _a.Pop(_a.Count - AttributeStackInitialCount);
             goto EndOfGeneratedCode;
-
             EndOfGeneratedCode:
             ;
-            #endregion grammlator generated 09.06.2017 21:49:32
+            #endregion grammlator generated 17.06.2017 16:07:14
 
             }
         }

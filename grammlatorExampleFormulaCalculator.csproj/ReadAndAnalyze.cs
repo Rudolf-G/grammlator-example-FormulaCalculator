@@ -38,7 +38,7 @@ namespace GrammlatorExampleFormulaCalculator {
         /// </summary>
         public ReadAndAnalyzeClass() {
             MyCharInput = new MyCharacterInputClass(_a);
-            MySymbolInput = new MySymbolInputClass(_a, _s, MyCharInput);
+            MySymbolInput = new MySymbolInputClass(_a, _s, MyCharInput, LexicalErrorHandler);
             }
 
         // A dictionary will be used to store identifiers and their values
@@ -70,9 +70,9 @@ namespace GrammlatorExampleFormulaCalculator {
                 // The following grammar does not use an end symbol which stops the analyzing process.
                 // Therefore ComputeExpression() returns as soon as a look ahead input symbol can not be accepted. 
 
-                string RemainingCharacters = MySymbolInput.GetRemainigCharactersOfLine();
+                string RemainingCharacters = MySymbolInput.GetRemainingCharactersOfLine();
                 if (!string.IsNullOrEmpty(RemainingCharacters)) {
-                    Console.WriteLine("Remainig characters ignored: '" + RemainingCharacters + "'");
+                    Console.WriteLine("Remaining characters ignored: '" + RemainingCharacters + "'");
                     }
 
                 }
@@ -91,6 +91,12 @@ namespace GrammlatorExampleFormulaCalculator {
             Console.WriteLine("Error: no correct expression recognized, illegal symbol \"" + MySymbolInput.Symbol.ToString() + "\" in parser state");
             Console.WriteLine(stateDescription);
             // return to generated code, which will set the stacks to correct states and then return
+            }
+
+        void LexicalErrorHandler(int i, string illegalInput, string stateDescription) {
+            Console.WriteLine("Lexical error: the \"" + illegalInput + "\" is not allowed in the following lexical analyzer state:");
+            Console.WriteLine(stateDescription);
+            Console.WriteLine("The lexical analyzer will interpret this as \"Unknown\"");
             }
 
         #region grammar
