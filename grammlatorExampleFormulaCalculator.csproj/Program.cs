@@ -5,11 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace GrammlatorExampleFormulaCalculator {
-    class Program {
-        static void Main(string[] args) {
+    internal static class Program {
+        private static void Main() {
            new ReadAndAnalyzeClass().ReadAndAnalyze();
             }
-
         }
     }
 

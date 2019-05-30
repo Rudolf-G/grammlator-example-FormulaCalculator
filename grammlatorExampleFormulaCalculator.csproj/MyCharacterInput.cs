@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using GrammlatorRuntime;
 
@@ -7,13 +7,12 @@ namespace GrammlatorExampleFormulaCalculator {
     /// manually written class, which reads lines from console and provides the input character by character by the standard input methods for aGaC.
     /// The type of the provided symbols is cMyCharacterInput.CharGroup. The letter and the digit symbols have an attribute of type char.
     /// </summary>
-    public class MyCharacterInputClass: GrammlatorInput<MyCharacterInputClass.CharGroupEnumeration> {
-
+    public class InputClassifier: GrammlatorInput<InputClassifier.ClassifierResult> {
         /// <summary>
         /// This constructor initalizes the input and makes the attribute stack available for attribute transfer 
         /// </summary>
         /// <param name="attributeStack">the attribute stack necessary to return attributes of symbol</param>
-        public MyCharacterInputClass(AttributeStack attributeStack) : base(attributeStack) {
+        public InputClassifier(MultiTypeStack attributeStack) : base(attributeStack) {
             inputLine = "";
             Column = inputLine.Length + 1; // column == inputLine.Length would be interpreted as end of line
             Accepted = true; // there is no symbol to accept
@@ -44,11 +43,15 @@ namespace GrammlatorExampleFormulaCalculator {
         /// The enum CharGroup defines the named values which cMyCharacterInput.Symbol may assume.
         /// The order of these identifiers is relevant, because they are used for comparisions (== but also <, <=, >=, >)
         /// </summary>
-        public enum CharGroupEnumeration {
-            Unknown, Eol, LTChar, GTChar, EqualChar,
-            AddOp, SubOp, MultOp, DivOp, RightParentheses,
-            LeftParentheses, Digit, Letter, DecimalPoint
-            };
+        public enum ClassifierResult {
+#pragma warning disable RCS1057 // Add empty line between declarations.
+            AddOp, SubOp, MultOp, DivOp,
+            RightParentheses, Eol, EqualChar,
+            Unknown, LTChar, GTChar,
+            LeftParentheses,
+            Digit, Letter, DecimalPoint
+#pragma warning restore RCS1057 // Add empty line between declarations.
+        };
 
         /// <summary>
         /// If Accepted is true, then AcceptSymbol() does nothing, 
@@ -71,42 +74,53 @@ namespace GrammlatorExampleFormulaCalculator {
             if (Column > inputLine.Length) { // column == inputLine.Length: see below
                 inputLine = Console.ReadLine();
                 Column = 0;
-                };
+                }
 
             char c;  // character code of Symbol, pushed as attribute of Symbol to the attribute stack by AcceptSymbol()
 
-            if (Column == inputLine.Length) {
+            if (Column == inputLine.Length)
+            {
                 c = '\n'; // return eol
-                }
+            }
             else
+            {
                 c = inputLine[Column];
+            }
 
-            if (char.IsDigit(c)) Symbol = CharGroupEnumeration.Digit;
-            else if (char.IsLetter(c)) Symbol = CharGroupEnumeration.Letter;
+            if (char.IsDigit(c))
+            {
+                Symbol = ClassifierResult.Digit;
+            }
+            else if (char.IsLetter(c))
+            {
+                Symbol = ClassifierResult.Letter;
+            }
             else
-                switch (c) {
-                    case '+': Symbol = CharGroupEnumeration.AddOp; break;
-                    case '-': Symbol = CharGroupEnumeration.SubOp; break;
-                    case '*': Symbol = CharGroupEnumeration.MultOp; break;
-                    case '/': Symbol = CharGroupEnumeration.DivOp; break;
-                    case '(': Symbol = CharGroupEnumeration.LeftParentheses; break;
-                    case ')': Symbol = CharGroupEnumeration.RightParentheses; break;
-                    case '=': Symbol = CharGroupEnumeration.EqualChar; break;
-                    case '<': Symbol = CharGroupEnumeration.LTChar; break;
-                    case '>': Symbol = CharGroupEnumeration.GTChar; break;
-                    case '\n': Symbol = CharGroupEnumeration.Eol; break;
-                    case ',': Symbol = CharGroupEnumeration.DecimalPoint; break;
-                    case '.': Symbol = CharGroupEnumeration.DecimalPoint; break;
-                    default: Symbol = CharGroupEnumeration.Unknown; break;
-                    }
-
-            // Store attributes of symbol, if any, in AttributesOfSymbol.
-            // Be careful, this direct access to the _char field of an element of the attribute stack is not type safe.
-            if (Symbol == CharGroupEnumeration.Digit || Symbol == CharGroupEnumeration.Letter) {
-                AttributesOfSymbol.Reserve(1);
-                AttributesOfSymbol.a[AttributesOfSymbol.x]._char = c;
+            {
+                switch (c)
+                {
+                    case '+': Symbol = ClassifierResult.AddOp; break;
+                    case '-': Symbol = ClassifierResult.SubOp; break;
+                    case '*': Symbol = ClassifierResult.MultOp; break;
+                    case '/': Symbol = ClassifierResult.DivOp; break;
+                    case '(': Symbol = ClassifierResult.LeftParentheses; break;
+                    case ')': Symbol = ClassifierResult.RightParentheses; break;
+                    case '=': Symbol = ClassifierResult.EqualChar; break;
+                    case '<': Symbol = ClassifierResult.LTChar; break;
+                    case '>': Symbol = ClassifierResult.GTChar; break;
+                    case '\n': Symbol = ClassifierResult.Eol; break;
+                    case ',': Symbol = ClassifierResult.DecimalPoint; break;
+                    case '.': Symbol = ClassifierResult.DecimalPoint; break;
+                    default: Symbol = ClassifierResult.Unknown; break;
                 }
             }
 
+            // Store attributes of symbol, if any, in AttributesOfSymbol.
+            // Be careful, this direct access to the _char field of an element of the attribute stack is not type safe.
+            if (Symbol == ClassifierResult.Digit || Symbol == ClassifierResult.Letter) {
+                AttributesOfSymbol.Allocate(1);
+                AttributesOfSymbol.PeekRef(0)._char = c;
+                }
+            }
         }
     }
