@@ -3,16 +3,56 @@ using System.Diagnostics;
 using GrammlatorRuntime;
 
 namespace GrammlatorExampleFormulaCalculator {
+
     /// <summary>
-    /// manually written class, which reads lines from console and provides the input character by character by the standard input methods for aGaC.
-    /// The type of the provided symbols is cMyCharacterInput.CharGroup. The letter and the digit symbols have an attribute of type char.
+    /// The enum <see cref="ClassifierResult"/> defines the named values which <see cref="MyInputClassifier.PeekSymbol"/> can return.
+    /// The order of these identifiers is relevant, because they are used for comparisions (== but also &lt; , &lt;=, >=, >)
     /// </summary>
-    public class InputClassifier: GrammlatorInput<InputClassifier.ClassifierResult> {
+    public enum ClassifierResult
+    {
+        AddOp, SubOp, MultOp, DivOp, PotOp,
+
+        RightParentheses, Eol, EqualChar,
+
+        Unknown, LTChar, GTChar,
+
+        LeftParentheses,
+
+        Digit, Letter, DecimalPoint
+    };
+
+    public static class ClassifierResultExtensions
+    {
+        /// <summary>
+        /// Convert the enum value to a one character string if appropriate else return the name of the value
+        /// </summary>
+        /// <param name="c">The enum value</param>
+        /// <returns>The string to dispaly the enum value</returns>
+        public static string MyToString(this ClassifierResult c)
+        {
+            // Assign a character to each value of ClassifierResult or assign 'x'
+            const string MyDisplay = "+-*/^)x=x<>(xx.";
+            char result = MyDisplay[(int)c];
+
+            if (result != 'x')
+                return result.ToString();
+            else
+                return c.ToString();
+        }
+    }
+
+    /// <summary>
+    /// Manually written class, which reads lines from console and provides
+    /// the input character by character by the standard input methods of grammlator.
+    /// The type of the provided symbols is <see cref="MyInputClassifier.ClassifierResult"/>.
+    /// The letter and the digit symbols have an attribute of type char: the respective character.
+    /// </summary>
+    public class MyInputClassifier: GrammlatorInput<ClassifierResult> {
         /// <summary>
         /// This constructor initalizes the input and makes the attribute stack available for attribute transfer 
         /// </summary>
         /// <param name="attributeStack">the attribute stack necessary to return attributes of symbol</param>
-        public InputClassifier(MultiTypeStack attributeStack) : base(attributeStack) {
+        public MyInputClassifier(MultiTypeStack attributeStack) : base(attributeStack) {
             inputLine = "";
             Column = inputLine.Length + 1; // column == inputLine.Length would be interpreted as end of line
             Accepted = true; // there is no symbol to accept
@@ -40,47 +80,33 @@ namespace GrammlatorExampleFormulaCalculator {
             }
 
         /// <summary>
-        /// The enum CharGroup defines the named values which cMyCharacterInput.Symbol may assume.
-        /// The order of these identifiers is relevant, because they are used for comparisions (== but also <, <=, >=, >)
-        /// </summary>
-        public enum ClassifierResult {
-#pragma warning disable RCS1057 // Add empty line between declarations.
-            AddOp, SubOp, MultOp, DivOp,
-            RightParentheses, Eol, EqualChar,
-            Unknown, LTChar, GTChar,
-            LeftParentheses,
-            Digit, Letter, DecimalPoint
-#pragma warning restore RCS1057 // Add empty line between declarations.
-        };
-
-        /// <summary>
         /// If Accepted is true, then AcceptSymbol() does nothing, 
         /// else column is incremented, all the attributes of Symbol are pushed to the attribute stack and accepted is set to true.
         /// </summary>
         public override void AcceptSymbol() {
-            Debug.Assert(!Accepted);
             if (Accepted) return;
-            base.AcceptSymbol();
+            Accepted = true;
+            _a.CopyAndRemoveFrom(AttributesOfSymbol);
             Column++;
             }
 
         /// <summary>
-        /// If accepted is false, the FetchSymbol() does nothing,
+        /// If accepted is false, <see cref="PeekSymbol"/> does nothing,
         /// else it will retrieve the next "Symbol" and store its attributes (if any) in private variables.
         /// </summary>
-        public override void FetchSymbol() {
-            if (!Accepted) return;
+        public override ClassifierResult PeekSymbol() {
+            if (!Accepted) return Symbol;
             Accepted = false;
             if (Column > inputLine.Length) { // column == inputLine.Length: see below
                 inputLine = Console.ReadLine();
                 Column = 0;
                 }
 
-            char c;  // character code of Symbol, pushed as attribute of Symbol to the attribute stack by AcceptSymbol()
+            char c;  // character code to be classified and to be used as attribute of Digit and Letter
 
             if (Column == inputLine.Length)
             {
-                c = '\n'; // return eol
+                c = '\n'; // end of line is interpreted as Eol character
             }
             else
             {
@@ -103,24 +129,29 @@ namespace GrammlatorExampleFormulaCalculator {
                     case '-': Symbol = ClassifierResult.SubOp; break;
                     case '*': Symbol = ClassifierResult.MultOp; break;
                     case '/': Symbol = ClassifierResult.DivOp; break;
+                    case '^': Symbol = ClassifierResult.PotOp; break;
                     case '(': Symbol = ClassifierResult.LeftParentheses; break;
                     case ')': Symbol = ClassifierResult.RightParentheses; break;
                     case '=': Symbol = ClassifierResult.EqualChar; break;
                     case '<': Symbol = ClassifierResult.LTChar; break;
                     case '>': Symbol = ClassifierResult.GTChar; break;
                     case '\n': Symbol = ClassifierResult.Eol; break;
-                    case ',': Symbol = ClassifierResult.DecimalPoint; break;
+                    case ',':
                     case '.': Symbol = ClassifierResult.DecimalPoint; break;
                     default: Symbol = ClassifierResult.Unknown; break;
                 }
             }
 
-            // Store attributes of symbol, if any, in AttributesOfSymbol.
-            // Be careful, this direct access to the _char field of an element of the attribute stack is not type safe.
-            if (Symbol == ClassifierResult.Digit || Symbol == ClassifierResult.Letter) {
+            // Store character as attribute in AttributesOfSymbol
+            if (Symbol == ClassifierResult.Digit
+                || Symbol == ClassifierResult.Letter
+                || Symbol == ClassifierResult.Unknown
+                ) {
                 AttributesOfSymbol.Allocate(1);
                 AttributesOfSymbol.PeekRef(0)._char = c;
                 }
+
+            return Symbol;
             }
         }
     }

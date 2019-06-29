@@ -63,9 +63,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="grammlatorRuntime.cs" />
-    <Compile Include="MyCharacterInput.cs" />
+    <Compile Include="MyInputClassifier.cs" />
     <Compile Include="ReadAndAnalyze.cs" />
-    <Compile Include="MySymbolInput.cs" />
+    <Compile Include="MyLexer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

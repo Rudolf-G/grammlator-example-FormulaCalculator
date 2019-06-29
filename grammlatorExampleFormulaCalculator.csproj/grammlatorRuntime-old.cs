@@ -17,6 +17,28 @@ namespace GrammlatorRuntime
     /// <typeparam name="TTypeOfOutputSymbols">Type of the attributes of the "Symbol" the instance makes available</typeparam>
     public interface IGrammlatorInput<TTypeOfOutputSymbols> where TTypeOfOutputSymbols : IComparable /* enum */
     {
+        ///// <summary>
+        ///// After the first call of FetchSymbol() Symbol will have a defined value.  The value can only be changed by FetchSymbol().
+        ///// Symbol typically is used in comparisons in generated code.
+        ///// </summary>
+        //TTypeOfOutputSymbols Symbol { get; }
+
+        /// <summary>        
+        /// <para>When accepted is false, then calls to FewtchSymbol() do nothing, 
+        /// calls to AcceptSymbol() push all the attributes of Symbol to the attribute stack and set accepted to true.</para>
+        /// <para>When accepted is true, then calls to AcceptSymbol() do nothing, calls to FetchSymbol() retrieve the next symbol and set accepted to false. </para>
+        /// </summary>
+        Boolean Accepted { get; }
+
+        ///<summary>
+        /// The attributeStack <see cref="_a"/> of <see cref="GrammlatorRuntime"/> 
+        /// is used  by grammlator generated code 
+        /// b) to return the attributes of output symbols (if any)
+        /// c) to get the attributes of input symbols. 
+        /// Caution: Access to the elements of the attribute stack is not type save.
+        /// </summary>
+        MultiTypeStack _a { get; }
+
         /// <summary>
         /// Do nothing, if accepted==true. Else set accepted=true and copy the AttributesOfSymbol to the attribute stack. 
         /// </summary>
@@ -48,9 +70,7 @@ namespace GrammlatorRuntime
         /// b) to get the attributes of input symbols. 
         /// Caution: Access to the elements of the attribute stack is not type save.
         ///</summary>
-#pragma warning disable IDE1006 // Benennungsstile
         public MultiTypeStack _a { get; protected set; }
-#pragma warning restore IDE1006 // Benennungsstile
 
         /// <summary>
         /// Constructor of cGrammlatorInputApplication
@@ -68,7 +88,7 @@ namespace GrammlatorRuntime
         /// After the first call of FetchSymbol() Symbol will have a defined value.  The value can only be changed by FetchSymbol().
         /// Symbol typically is used in comparisons in generated code.
         /// </summary>
-        public TTypeOfOutputSymbols Symbol { get; protected set; }
+        internal TTypeOfOutputSymbols Symbol { get; set; }
 
         /// <summary>
         /// <para>When <see cref="Accepted"/> is false, then calls to <see cref="PeekSymbol"/> do nothing and </para>
@@ -95,7 +115,7 @@ namespace GrammlatorRuntime
         /// Has no effect, if accepted==true.
         /// </summary>
         public virtual void AcceptSymbol()
-        {
+        { // Symbol akzeptieren und Attribute kellern
             if (Accepted)
                 return;
             Accepted = true;
@@ -118,7 +138,6 @@ namespace GrammlatorRuntime
         /// b) to return the attributes of output symbol (if any) and c) to get the attribute of input symbols.
         /// Beware: access to its elements is not type save.
         /// </summary>
-#pragma warning disable IDE1006 // Benennungsstile
         public MultiTypeStack _a { get; protected set; }
 
         /// <summary>
@@ -129,7 +148,6 @@ namespace GrammlatorRuntime
         /// Different lexers / parsers may share the same state stack.
         /// </summary>
         protected Stack<Int32> _s { get; }
-#pragma warning restore IDE1006 // Benennungsstile
 
         /// <summary>
         /// Constructor of cGrammlatorInputApplication
@@ -157,9 +175,7 @@ namespace GrammlatorRuntime
         /// <summary>
         /// The state stack is used by grammlator generated code. Each class may have its own state stack. Different classes may share the same state stack.
         /// </summary>
-#pragma warning disable IDE1006 // Benennungsstile
         protected Stack<Int32> _s { get; }
-#pragma warning restore IDE1006 // Benennungsstile
 
         /// <summary>
         /// Constructor of cGrammlatorInputApplication
@@ -282,62 +298,26 @@ namespace GrammlatorRuntime
     /// <summary>
     /// Each element of the attribute stack stores one attribute of the actually processed productions of the grammar.
     /// Only one of the different fields of each stackelement is used at the same time.
-    /// The other fields contain old or undefined values, may overlap on anonother and be overwritten by random binary patterns.
-    /// The standrad grammlator runtime provides all C# standard types. Additional types can be added.
+    /// The other fields contain old or undefined values and may be overwritten by random binary patterns.
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1815:OverrideEqualsAndOperatorEqualsOnValueTypes")]
     [StructLayout(LayoutKind.Explicit)]
-    public partial struct MultiTypeStruct // may be extended by "partial" declarations
-    {
+    public partial struct MultiTypeStruct
+    { // must be extended by "partial" declarations
+
         /* It is possible, to overlap fields with different object types.
          * Not all errors caused by different overlapping object-types are recognized by the C# compiler or the C# runtime system.
          * Storing an object in one field and accessing the object by an other typed object field 
          * will result in very hard to recognize errors in the behaviour of the program.
          */
-        [FieldOffset(0)]
-        public object _object; // object types
-
-        [FieldOffset(0)]
-        public string _string;
-
-        [FieldOffset(8)]       // value fields must not overlap object fields
-        public bool _bool;
-
-        [FieldOffset(8)]
-        public byte _byte;
-
-        [FieldOffset(8)]
-        public sbyte _sbyte;
-
-        [FieldOffset(8)]
-        public char _char;
-
-        [FieldOffset(8)]
-        public decimal _decimal;
-
-        [FieldOffset(8)]
-        public double _double;
-
-        [FieldOffset(8)]
-        public float _float;
-
-        [FieldOffset(8)]
-        public int _int;
-
-        [FieldOffset(8)]
-        public uint _uint;
-
-        [FieldOffset(8)]
-        public long _long;
-
-        [FieldOffset(8)]
-        public ulong _ulong;
-
-        [FieldOffset(8)]
-        public short _short;
-
-        [FieldOffset(8)]
-        public ushort _ushort;
+        //[FieldOffset(0)]
+        //public object _object; // an example of an object field
+        //[FieldOffset(0)]       // _string uses the same memory location as _double 
+        //public string _string; // an example of a overlapping object field
+        //[FieldOffset(8)]       // value fields must not overlap object fields
+        //public double _double; // an example of a value field
+        //[FieldOffset(8)]       // _int uses the same memory location as _double 
+        //public int _int;       // an example of a overlapping value field
     }
 
     /// <summary>
@@ -504,39 +484,5 @@ namespace GrammlatorRuntime
         /// </summary>
         /// <param name="sourceStack">stack to copy from</param>
         public void CopyAndRemoveFrom(MultiTypeStack sourceStack) => CopyAndRemoveFrom(sourceStack, sourceStack.Count);
-
-        /// <summary>
-        /// Stringbuilder used by GetString
-        /// </summary>
-        private readonly StringBuilder GetStringStringBuilder = new StringBuilder(30); // will grow as needed
-
-        /// <summary>
-        /// Retrieves the string starting with a[StartIndex]._char and ending before (char)0 or at Index x, which occurs first
-        /// </summary>
-        /// <param name="startIndex">Index less than or equal to 1 + the index x of the last stack element</param>
-        /// <returns>the string without (char)0 or the empty string</returns>
-        public String GetString(Int32 startIndex)
-        { // Zurückgeben der ab Position x+offset im Keller gespeicherten nullterminierten Zeichenfolge als String
-            Debug.Assert(startIndex <= TopIndex + 1);
-            if (startIndex > TopIndex)
-                return "";
-
-            Int32 EndIndex = Array.FindIndex(a, startIndex, TopIndex - startIndex + 1, (MultiTypeStruct x) => x._char == (Char)0);
-            if (EndIndex == -1)
-                EndIndex = TopIndex + 1; // if (char)0 not found proceed as it would be above top of stack
-
-            Int32 length = EndIndex - startIndex;
-            GetStringStringBuilder.EnsureCapacity(length);
-
-            for (Int32 i = startIndex; i < EndIndex; i++)
-            {
-                GetStringStringBuilder.Append(a[i]._char);
-            }
-
-            String result = GetStringStringBuilder.ToString();
-            GetStringStringBuilder.Clear();
-
-            return result;
-        }
     }
 }
