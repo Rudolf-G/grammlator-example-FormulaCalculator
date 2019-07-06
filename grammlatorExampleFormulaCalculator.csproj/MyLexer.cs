@@ -26,7 +26,7 @@ namespace GrammlatorExampleFormulaCalculator
     public static class LexerResultExtensions
     {
         /// <summary>
-        /// Convert the enum value to a one character string if appropriate else return the name of the value
+        /// Convert the enum value to a one character string if appropriate else to the name of the value
         /// </summary>
         /// <param name="r">The enum value</param>
         /// <returns>The string to dispaly the enum value</returns>
@@ -107,7 +107,15 @@ namespace GrammlatorExampleFormulaCalculator
         //|    followed by a list of all terminal symbols in correct order as given by the enum declaration in cMyCharacterInput.
         //|    There in addition the attributes of each terminal symbol must be specified exactly as provided by MyCharacterInput.
         //| */
-        //| InputClassifier, ClassifierResult = 
+        //|
+        //| // Compiler settings
+        //| Symbol: "Symbol"
+        //| AssignSymbol: "Symbol = InputClassifier.PeekSymbol();"
+        //| AcceptSymbol: "InputClassifier.AcceptSymbol();"
+        //| TerminalSymbolEnum: "ClassifierResult"
+        //| ErrorHandlerCall: "ErrorHandler(ErrorStateNumber, StateDescription, Symbol);"
+        //|
+        //| // Definition of the terminal input symbols of the lexer
         //|      AddOp | SubOp | MultOp | DivOp | PotOp 
         //|    | RightParentheses | Eol | EqualChar 
         //|    | Unknown(char c) | LTChar | GTChar
@@ -227,11 +235,13 @@ namespace GrammlatorExampleFormulaCalculator
                 return (LexerResult)this.Symbol;
             Accepted = false;
 
+            String StateDescription;
+            ClassifierResult Symbol;
+            Int32 ErrorStateNumber;
+
             /***** the contens of the region "grammlator generated" are (replaced and) inserted by grammlator *****/
-#region grammlator generated 29.06.2019 by Grammlator version 0:21 (build 27.06.2019 12:46:50 +00:00)
+#region grammlator generated 05.07.2019 by Grammlator version 0:21 (build 05.07.2019 22:50:10 +00:00)
   Int32 AttributeStackInitialCount = _a.Count;
-  String StateDescription;
-  ClassifierResult Symbol;
   // State 1
   StateDescription =
        "*Startsymbol= ►Number(double value);\r\n"
@@ -241,7 +251,7 @@ namespace GrammlatorExampleFormulaCalculator
   Symbol = InputClassifier.PeekSymbol();
   if (Symbol == ClassifierResult.DecimalPoint)
      {
-     ErrorHandler(1, StateDescription, Symbol);
+     ErrorStateNumber = 1;
      goto x1;
      }
   if (Symbol == ClassifierResult.Unknown)
@@ -328,7 +338,7 @@ s2:
      Symbol = InputClassifier.PeekSymbol();
      if (Symbol != ClassifierResult.Digit)
         {
-        ErrorHandler(3, StateDescription, Symbol);
+        ErrorStateNumber = 3;
         goto x1;
         }
      Debug.Assert(Symbol == ClassifierResult.Digit);
@@ -430,12 +440,13 @@ s5:
   goto s5;
 
 x1:
-  // This point is reached after an input error has been handled and no exception has been thrown
+  // This point is reached after an input error has been found
+  ErrorHandler(ErrorStateNumber, StateDescription, Symbol);
   _a.Free(_a.Count - AttributeStackInitialCount);
 
 EndOfGeneratedCode:
      ;
-#endregion grammlator generated 29.06.2019 by Grammlator version 0:21 (build 27.06.2019 12:46:50 +00:00)
+#endregion grammlator generated 05.07.2019 by Grammlator version 0:21 (build 05.07.2019 22:50:10 +00:00)
 
             return (LexerResult)(this.Symbol);
         }

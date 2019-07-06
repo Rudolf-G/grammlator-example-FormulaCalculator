@@ -3,7 +3,6 @@ using System.Diagnostics;
 using GrammlatorRuntime;
 
 namespace GrammlatorExampleFormulaCalculator {
-
     /// <summary>
     /// The enum <see cref="ClassifierResult"/> defines the named values which <see cref="MyInputClassifier.PeekSymbol"/> can return.
     /// The order of these identifiers is relevant, because they are used for comparisions (== but also &lt; , &lt;=, >=, >)
@@ -24,7 +23,7 @@ namespace GrammlatorExampleFormulaCalculator {
     public static class ClassifierResultExtensions
     {
         /// <summary>
-        /// Convert the enum value to a one character string if appropriate else return the name of the value
+        /// Convert the enum value to a one character string if appropriate else to the name of the value
         /// </summary>
         /// <param name="c">The enum value</param>
         /// <returns>The string to dispaly the enum value</returns>

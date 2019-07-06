@@ -176,23 +176,20 @@ namespace GrammlatorRuntime
     /*          c S t a t e S t a c k          */
 
     /// <summary>
-    /// Extension Pop(Int32 i) to <see cref="System.Collections.Generic.Stack{T}"/>
+    /// Extension <see cref="Discard{T}(Stack{T}, int)"/> to <see cref="System.Collections.Generic.Stack{T}"/>
     /// </summary>
     public static class StackExtensions
     {
         ///<summary>
-        /// "x=Pop(1);" is eqivalent to "x=Pop();".  "x=Pop(2);" is equivalent to "Pop(); x=Pop();" and so on.
-        /// Pop(i) is executed, when a reduction goes back over n states, with i of them having assigned values.
+        /// "Discard(1);" is eqivalent to "Pop();".  "Discard(2);" is equivalent to "Pop(); Pop();" and so on.
         /// </summary>
         /// <param name="stack">the base stack</param>
         /// <param name="count">number of elements to remove from the stack</param>
-        /// <returns>last element removed</returns>
         public static void Discard<T>(this Stack<T> stack, Int32 count)
         {
             Debug.Assert(stack != null);
             for (Int32 i = 0; i < count; i++) // count-1 Pop
                 stack.Pop();
-            return;
         }
     }
 
