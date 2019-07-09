@@ -172,13 +172,13 @@ pi=355/113
         //|    The names of the terminal symbols are used in the generated code as values of a C# enumeration. */
         //|
         //| // Compiler settings control how the grammlator generates code (the names of the settings are not case sensitiv)
-        //| Symbol: "Symbol" // the name of the variable used in the AssingSymbol instruction
+        //| Symbol: "Symbol" // the name of the variable used in the AssignSymbol instruction
         //| AssignSymbol: "Symbol = Lexer.PeekSymbol();" // the instruction to fetch a symbol
         //| AcceptSymbol: "Lexer.AcceptSymbol();" // the instruction to accept a symbol
         //| TerminalSymbolEnum: "LexerResult" // a prefix to be added to terminal symbol values
-        //| StateDescription: "StateDescription"
-        //| ErrorStateNumber: "ErrorStateNumber"
-        //| ErrorHandlerCall: "ErrorHandler(ErrorStateNumber, StateDescription, Symbol);"
+        //| StateDescription: "StateDescription" // the name of the variable which is the StateDescription assigned to
+        //| ErrorStateNumber: "ErrorStateNumber" // the name of the variable which is the state number assigned to in case of errors
+        //| ErrorHandlerCall: "ErrorHandler(ErrorStateNumber, StateDescription, Symbol);" // the instruction to be executed in case of errors
         //|
         //| // Definition of the terminal symbols of the parser:
         //|    AddOp | SubOp | MultOp | DivOp | PotOp
@@ -230,7 +230,7 @@ pi=355/113
         //| //  The next grammar rule defines the nonterminal symbol MyGrammar.
         //|
         //| MyGrammar = 
-        //|    Expression(double result) ?-100?  
+        //|    Expression(double result) ??-100??  
         private static void WriteResult(double result)
         {
             Console.WriteLine("Result = " + result.ToString());
@@ -241,7 +241,7 @@ pi=355/113
          * ?-100? assigns a negative priority to this rule (see preceeding explanation).
          */
 
-        //|    | Identifier(string identifier), Priority101, "=", Expression(double result) ?-101?
+        //|    | Identifier(string identifier), Priority101, "=", Expression(double result) ??-101??
         private void AssignValueToIdentifier(string identifier, double result)
         {
             if (MyDictionary.ContainsKey(identifier))
@@ -259,7 +259,7 @@ pi=355/113
         //| PrimaryExpression(double value)=
         //|      "(", Expression(double value), ")"
         //|    | Number(double value)
-        //|    | Identifier(string identifier)?-101? // do not interpret identifier as expression if "=" follows (Priority101)
+        //|    | Identifier(string identifier)??-101?? // do not interpret identifier as expression if "=" follows (Priority101)
         private void IdentifierInExpression(out double value, string identifier)
         {
             if (!MyDictionary.TryGetValue(identifier, out value))
@@ -272,49 +272,49 @@ pi=355/113
         //|    | "-", PrimaryExpression(double value)
         private static void Negative(ref double value) { value = -value; }
 
-        //|    | Expression(double multiplicand), Priority20, "*",  Expression(double multiplier)?21?
+        //|    | Expression(double multiplicand), Priority20, "*",  Expression(double multiplier)??21??
         private static void Multiply(out double value, double multiplicand, double multiplier)
         {
             value = multiplicand * multiplier;
         }
 
-        //|    | Expression(double dividend), Priority20, "/", Expression(double divisor)?22?
+        //|    | Expression(double dividend), Priority20, "/", Expression(double divisor)??22??
         private static void Divide(out double value, double dividend, double divisor)
         {
             value = dividend / divisor;
         }
 
         //| // Priorities -40 and -41 solve the conflict, when the next symbol is multOp or divOp
-        //|    | Expression(double leftAddend), Priority10, "+",  Expression(double rightAddend) ?11? // left associative
+        //|    | Expression(double leftAddend), Priority10, "+",  Expression(double rightAddend) ??11?? // left associative
         private static void Add(out double value, double leftAddend, double rightAddend)
         {
             value = leftAddend + rightAddend;
         }
 
-        //|    | Expression(double minuend), Priority10, "-", Expression(double subtrahend)?12? // left associative
+        //|    | Expression(double minuend), Priority10, "-", Expression(double subtrahend)??12?? // left associative
         private static void Sub(out double value, double minuend, double subtrahend)
         {
             value = minuend - subtrahend;
         }
 
-        //|    | Expression(double b), Priority30, "^", Expression(double exponent)?29? // right associative
+        //|    | Expression(double b), Priority30, "^", Expression(double exponent)??29?? // right associative
         private static void Power(out double value, double b, double exponent)
         {
             value = Math.Pow(b, exponent);
         }
 
         //| /* The following nonterminal symbols, which produce the empty string, are defined to solve conflicts by priorities */
-        //| Priority101= ?101?
-        //| Priority10= ?10?
-        //| Priority20= ?20?
-        //| Priority30= ?30?
+        //| Priority101=??101??
+        //| Priority10= ??10??
+        //| Priority20= ??20??
+        //| Priority30= ??30??
 
         #endregion grammar
 
         /***** The following few lines up to #region and the lines after #endregion are programmed manually *****/
 
         /// <summary>
-        /// ComputeExpression implements the analyzer
+        /// ReadAndAnalyzeExpression is generated by grammlator and implements the analyzer
         /// </summary>
         private void ReadAndAnalyzeExpression()
         {
@@ -325,717 +325,717 @@ pi=355/113
 
             /***** The content of the region "grammlator generated" is (replaced and) inserted by grammlator *****/
 
-#region grammlator generated 05.07.2019 by Grammlator version 0:21 (build 05.07.2019 22:50:10 +00:00)
-  Int32 StateStackInitialCount = _s.Count;
-  Int32 AttributeStackInitialCount = _a.Count;
-  // State 1 (0)
-  StateDescription =
-       "*Startsymbol= ►MyGrammar;";
-  _s.Push(0);
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol == LexerResult.AddOp)
-     goto as23;
-  if (Symbol == LexerResult.SubOp)
-     goto as22;
-  if (Symbol == LexerResult.LeftParentheses)
-     goto as20;
-  if (Symbol == LexerResult.Number)
-     {
-     Lexer.AcceptSymbol();
-     goto s19;
-     }
-  if (Symbol != LexerResult.Identifier)
-     {
-     ErrorStateNumber = 1;
-     goto x1;
-     }
-  Debug.Assert(Symbol == LexerResult.Identifier);
-  Lexer.AcceptSymbol();
-  // State 2
-  StateDescription =
-       "MyGrammar= Identifier(string identifier), ►Priority101, \"=\", Expression(double result);\r\n"
-     + "PrimaryExpression(double value)= Identifier(string identifier)●;";
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol != LexerResult.EqualChar)
-     {
-     /* Reduction 2
-      * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
-      */
+            #region grammlator generated 09.07.2019 by Grammlator version 0:21 (build 09.07.2019 09:28:08 +00:00)
+            Int32 StateStackInitialCount = _s.Count;
+            Int32 AttributeStackInitialCount = _a.Count;
+            // State 1 (0)
+            StateDescription =
+                 "*Startsymbol= ►MyGrammar;";
+            _s.Push(0);
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol == LexerResult.AddOp)
+                goto AcceptState23;
+            if (Symbol == LexerResult.SubOp)
+                goto AcceptState22;
+            if (Symbol == LexerResult.LeftParentheses)
+                goto AcceptState20;
+            if (Symbol == LexerResult.Number)
+            {
+                Lexer.AcceptSymbol();
+                goto State19;
+            }
+            if (Symbol != LexerResult.Identifier)
+            {
+                ErrorStateNumber = 1;
+                goto EndWithError1;
+            }
+            Debug.Assert(Symbol == LexerResult.Identifier);
+            Lexer.AcceptSymbol();
+            // State 2
+            StateDescription =
+                 "MyGrammar= Identifier(string identifier), ►Priority101, \"=\", Expression(double result);\r\n"
+               + "PrimaryExpression(double value)= Identifier(string identifier)●;";
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol != LexerResult.EqualChar)
+            {
+                /* Reduction 2
+                 * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
+                 */
 
-     IdentifierInExpression(
-        value: out _a.PeekRef(0)._double,
-        identifier: _a.PeekClear(0)._string
-        );
+                IdentifierInExpression(
+                   value: out _a.PeekRef(0)._double,
+                   identifier: _a.PeekClear(0)._string
+                   );
 
-     goto s19;
-     }
-  Debug.Assert(Symbol == LexerResult.EqualChar);
-  // State 3
-  StateDescription =
-       "MyGrammar= Identifier(string identifier), Priority101, ►\"=\", Expression(double result);";
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol != LexerResult.EqualChar)
-     {
-     ErrorStateNumber = 3;
-     goto x1;
-     }
-  Debug.Assert(Symbol == LexerResult.EqualChar);
-  Lexer.AcceptSymbol();
-  // State 4 (1)
-  StateDescription =
-       "MyGrammar= Identifier(string identifier), Priority101, \"=\", ►Expression(double result);";
-  _s.Push(1);
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol == LexerResult.AddOp)
-     goto as23;
-  if (Symbol == LexerResult.SubOp)
-     goto as22;
-  if (Symbol == LexerResult.LeftParentheses)
-     goto as20;
-  if (Symbol == LexerResult.Number)
-     {
-     Lexer.AcceptSymbol();
-     goto s5;
-     }
-  if (Symbol != LexerResult.Identifier)
-     {
-     ErrorStateNumber = 4;
-     goto x1;
-     }
-  Debug.Assert(Symbol == LexerResult.Identifier);
-  Lexer.AcceptSymbol();
-  /* Reduction 3
-   * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
-   */
+                goto State19;
+            }
+            Debug.Assert(Symbol == LexerResult.EqualChar);
+            // State 3
+            StateDescription =
+                 "MyGrammar= Identifier(string identifier), Priority101, ►\"=\", Expression(double result);";
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol != LexerResult.EqualChar)
+            {
+                ErrorStateNumber = 3;
+                goto EndWithError1;
+            }
+            Debug.Assert(Symbol == LexerResult.EqualChar);
+            Lexer.AcceptSymbol();
+            // State 4 (1)
+            StateDescription =
+                 "MyGrammar= Identifier(string identifier), Priority101, \"=\", ►Expression(double result);";
+            _s.Push(1);
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol == LexerResult.AddOp)
+                goto AcceptState23;
+            if (Symbol == LexerResult.SubOp)
+                goto AcceptState22;
+            if (Symbol == LexerResult.LeftParentheses)
+                goto AcceptState20;
+            if (Symbol == LexerResult.Number)
+            {
+                Lexer.AcceptSymbol();
+                goto State5;
+            }
+            if (Symbol != LexerResult.Identifier)
+            {
+                ErrorStateNumber = 4;
+                goto EndWithError1;
+            }
+            Debug.Assert(Symbol == LexerResult.Identifier);
+            Lexer.AcceptSymbol();
+            /* Reduction 3
+             * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
+             */
 
-  IdentifierInExpression(
-     value: out _a.PeekRef(0)._double,
-     identifier: _a.PeekClear(0)._string
-     );
+            IdentifierInExpression(
+               value: out _a.PeekRef(0)._double,
+               identifier: _a.PeekClear(0)._string
+               );
 
-s5:
-  // State 5
-  StateDescription =
-       "MyGrammar= Identifier(string identifier), Priority101, \"=\", Expression(double result)●;\r\n"
-     + "Expression(double value)= Expression(double multiplicand), ►Priority20, \"*\", Expression(double multiplier);\r\n"
-     + "Expression(double value)= Expression(double dividend), ►Priority20, \"/\", Expression(double divisor);\r\n"
-     + "Expression(double value)= Expression(double leftAddend), ►Priority10, \"+\", Expression(double rightAddend);\r\n"
-     + "Expression(double value)= Expression(double minuend), ►Priority10, \"-\", Expression(double subtrahend);\r\n"
-     + "Expression(double value)= Expression(double b), ►Priority30, \"^\", Expression(double exponent);";
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol >= LexerResult.RightParentheses)
-     {
-     /* Reduction 4, sStack: -1, aStack: -2
-      * MyGrammar= Identifier(string identifier), Priority101, "=", Expression(double result);◄ Priority: -101, method: AssignValueToIdentifier, aStack: -2
-      * then: *Startsymbol= MyGrammar;◄
-      */
-     _s.Pop();
+        State5:
+            // State 5
+            StateDescription =
+                 "MyGrammar= Identifier(string identifier), Priority101, \"=\", Expression(double result)●;\r\n"
+               + "Expression(double value)= Expression(double multiplicand), ►Priority20, \"*\", Expression(double multiplier);\r\n"
+               + "Expression(double value)= Expression(double dividend), ►Priority20, \"/\", Expression(double divisor);\r\n"
+               + "Expression(double value)= Expression(double leftAddend), ►Priority10, \"+\", Expression(double rightAddend);\r\n"
+               + "Expression(double value)= Expression(double minuend), ►Priority10, \"-\", Expression(double subtrahend);\r\n"
+               + "Expression(double value)= Expression(double b), ►Priority30, \"^\", Expression(double exponent);";
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol >= LexerResult.RightParentheses)
+            {
+                /* Reduction 4, sStack: -1, aStack: -2
+                 * MyGrammar= Identifier(string identifier), Priority101, "=", Expression(double result);◄ Priority: -101, method: AssignValueToIdentifier, aStack: -2
+                 * then: *Startsymbol= MyGrammar;◄
+                 */
+                _s.Pop();
 
-     AssignValueToIdentifier(
-        identifier: _a.PeekRef(-1)._string,
-        result: _a.PeekRef(0)._double
-        );
+                AssignValueToIdentifier(
+                   identifier: _a.PeekRef(-1)._string,
+                   result: _a.PeekRef(0)._double
+                   );
 
-     _a.Free(2);
-     goto h1;
-     }
-  if (Symbol <= LexerResult.SubOp)
-     goto s9;
-  if (Symbol == LexerResult.PotOp)
-     goto s6;
-  Debug.Assert(Symbol == LexerResult.MultOp || Symbol == LexerResult.DivOp);
-s14:
-  // State 14
-  StateDescription =
-       "Expression(double value)= Expression(double multiplicand), Priority20, ►\"*\", Expression(double multiplier);\r\n"
-     + "Expression(double value)= Expression(double dividend), Priority20, ►\"/\", Expression(double divisor);";
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol == LexerResult.MultOp)
-     {
-     Lexer.AcceptSymbol();
-     // State 17 (6)
-     StateDescription =
-          "Expression(double value)= Expression(double multiplicand), Priority20, \"*\", ►Expression(double multiplier);";
-     _s.Push(6);
-     Symbol = Lexer.PeekSymbol();
-     if (Symbol == LexerResult.AddOp)
-        goto as23;
-     if (Symbol == LexerResult.SubOp)
-        goto as22;
-     if (Symbol == LexerResult.LeftParentheses)
-        goto as20;
-     if (Symbol == LexerResult.Number)
-        {
-        Lexer.AcceptSymbol();
-        goto s18;
-        }
-     if (Symbol != LexerResult.Identifier)
-        {
-        ErrorStateNumber = 17;
-        goto x1;
-        }
-     Debug.Assert(Symbol == LexerResult.Identifier);
-     Lexer.AcceptSymbol();
-     /* Reduction 13
-      * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
-      */
+                _a.Free(2);
+                goto EndOfCode1;
+            }
+            if (Symbol <= LexerResult.SubOp)
+                goto State9;
+            if (Symbol == LexerResult.PotOp)
+                goto State6;
+            Debug.Assert(Symbol == LexerResult.MultOp || Symbol == LexerResult.DivOp);
+        State14:
+            // State 14
+            StateDescription =
+                 "Expression(double value)= Expression(double multiplicand), Priority20, ►\"*\", Expression(double multiplier);\r\n"
+               + "Expression(double value)= Expression(double dividend), Priority20, ►\"/\", Expression(double divisor);";
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol == LexerResult.MultOp)
+            {
+                Lexer.AcceptSymbol();
+                // State 17 (6)
+                StateDescription =
+                     "Expression(double value)= Expression(double multiplicand), Priority20, \"*\", ►Expression(double multiplier);";
+                _s.Push(6);
+                Symbol = Lexer.PeekSymbol();
+                if (Symbol == LexerResult.AddOp)
+                    goto AcceptState23;
+                if (Symbol == LexerResult.SubOp)
+                    goto AcceptState22;
+                if (Symbol == LexerResult.LeftParentheses)
+                    goto AcceptState20;
+                if (Symbol == LexerResult.Number)
+                {
+                    Lexer.AcceptSymbol();
+                    goto State18;
+                }
+                if (Symbol != LexerResult.Identifier)
+                {
+                    ErrorStateNumber = 17;
+                    goto EndWithError1;
+                }
+                Debug.Assert(Symbol == LexerResult.Identifier);
+                Lexer.AcceptSymbol();
+                /* Reduction 13
+                 * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
+                 */
 
-     IdentifierInExpression(
-        value: out _a.PeekRef(0)._double,
-        identifier: _a.PeekClear(0)._string
-        );
+                IdentifierInExpression(
+                   value: out _a.PeekRef(0)._double,
+                   identifier: _a.PeekClear(0)._string
+                   );
 
-     goto s18;
-     }
-  if (Symbol != LexerResult.DivOp)
-     {
-     ErrorStateNumber = 14;
-     goto x1;
-     }
-  Debug.Assert(Symbol == LexerResult.DivOp);
-  Lexer.AcceptSymbol();
-  // State 15 (5)
-  StateDescription =
-       "Expression(double value)= Expression(double dividend), Priority20, \"/\", ►Expression(double divisor);";
-  _s.Push(5);
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol == LexerResult.AddOp)
-     goto as23;
-  if (Symbol == LexerResult.SubOp)
-     goto as22;
-  if (Symbol == LexerResult.LeftParentheses)
-     goto as20;
-  if (Symbol == LexerResult.Number)
-     {
-     Lexer.AcceptSymbol();
-     goto s16;
-     }
-  if (Symbol != LexerResult.Identifier)
-     {
-     ErrorStateNumber = 15;
-     goto x1;
-     }
-  Debug.Assert(Symbol == LexerResult.Identifier);
-  Lexer.AcceptSymbol();
-  /* Reduction 11
-   * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
-   */
+                goto State18;
+            }
+            if (Symbol != LexerResult.DivOp)
+            {
+                ErrorStateNumber = 14;
+                goto EndWithError1;
+            }
+            Debug.Assert(Symbol == LexerResult.DivOp);
+            Lexer.AcceptSymbol();
+            // State 15 (5)
+            StateDescription =
+                 "Expression(double value)= Expression(double dividend), Priority20, \"/\", ►Expression(double divisor);";
+            _s.Push(5);
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol == LexerResult.AddOp)
+                goto AcceptState23;
+            if (Symbol == LexerResult.SubOp)
+                goto AcceptState22;
+            if (Symbol == LexerResult.LeftParentheses)
+                goto AcceptState20;
+            if (Symbol == LexerResult.Number)
+            {
+                Lexer.AcceptSymbol();
+                goto State16;
+            }
+            if (Symbol != LexerResult.Identifier)
+            {
+                ErrorStateNumber = 15;
+                goto EndWithError1;
+            }
+            Debug.Assert(Symbol == LexerResult.Identifier);
+            Lexer.AcceptSymbol();
+            /* Reduction 11
+             * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
+             */
 
-  IdentifierInExpression(
-     value: out _a.PeekRef(0)._double,
-     identifier: _a.PeekClear(0)._string
-     );
+            IdentifierInExpression(
+               value: out _a.PeekRef(0)._double,
+               identifier: _a.PeekClear(0)._string
+               );
 
-s16:
-  // State 16
-  StateDescription =
-       "Expression(double value)= Expression(double multiplicand), ►Priority20, \"*\", Expression(double multiplier);\r\n"
-     + "Expression(double value)= Expression(double dividend), ►Priority20, \"/\", Expression(double divisor);\r\n"
-     + "Expression(double value)= Expression(double dividend), Priority20, \"/\", Expression(double divisor)●;\r\n"
-     + "Expression(double value)= Expression(double leftAddend), ►Priority10, \"+\", Expression(double rightAddend);\r\n"
-     + "Expression(double value)= Expression(double minuend), ►Priority10, \"-\", Expression(double subtrahend);\r\n"
-     + "Expression(double value)= Expression(double b), ►Priority30, \"^\", Expression(double exponent);";
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol != LexerResult.PotOp)
-     {
-     /* Reduction 12, sStack: -1, aStack: -1
-      * Expression(double value)= Expression(double dividend), Priority20, "/", Expression(double divisor);◄ Priority: 22, method: Divide, aStack: -1
-      */
-     _s.Pop();
+        State16:
+            // State 16
+            StateDescription =
+                 "Expression(double value)= Expression(double multiplicand), ►Priority20, \"*\", Expression(double multiplier);\r\n"
+               + "Expression(double value)= Expression(double dividend), ►Priority20, \"/\", Expression(double divisor);\r\n"
+               + "Expression(double value)= Expression(double dividend), Priority20, \"/\", Expression(double divisor)●;\r\n"
+               + "Expression(double value)= Expression(double leftAddend), ►Priority10, \"+\", Expression(double rightAddend);\r\n"
+               + "Expression(double value)= Expression(double minuend), ►Priority10, \"-\", Expression(double subtrahend);\r\n"
+               + "Expression(double value)= Expression(double b), ►Priority30, \"^\", Expression(double exponent);";
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol != LexerResult.PotOp)
+            {
+                /* Reduction 12, sStack: -1, aStack: -1
+                 * Expression(double value)= Expression(double dividend), Priority20, "/", Expression(double divisor);◄ Priority: 22, method: Divide, aStack: -1
+                 */
+                _s.Pop();
 
-     Divide(
-        value: out _a.PeekRef(-1)._double,
-        dividend: _a.PeekRef(-1)._double,
-        divisor: _a.PeekRef(0)._double
-        );
+                Divide(
+                   value: out _a.PeekRef(-1)._double,
+                   dividend: _a.PeekRef(-1)._double,
+                   divisor: _a.PeekRef(0)._double
+                   );
 
-     _a.Free();
-     goto b1;
-     }
-  Debug.Assert(Symbol == LexerResult.PotOp);
-s6:
-  // State 6
-  StateDescription =
-       "Expression(double value)= Expression(double b), Priority30, ►\"^\", Expression(double exponent);";
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol != LexerResult.PotOp)
-     {
-     ErrorStateNumber = 6;
-     goto x1;
-     }
-  Debug.Assert(Symbol == LexerResult.PotOp);
-  Lexer.AcceptSymbol();
-  // State 7 (2)
-  StateDescription =
-       "Expression(double value)= Expression(double b), Priority30, \"^\", ►Expression(double exponent);";
-  _s.Push(2);
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol == LexerResult.AddOp)
-     goto as23;
-  if (Symbol == LexerResult.SubOp)
-     goto as22;
-  if (Symbol == LexerResult.LeftParentheses)
-     goto as20;
-  if (Symbol == LexerResult.Number)
-     {
-     Lexer.AcceptSymbol();
-     goto s8;
-     }
-  if (Symbol != LexerResult.Identifier)
-     {
-     ErrorStateNumber = 7;
-     goto x1;
-     }
-  Debug.Assert(Symbol == LexerResult.Identifier);
-  Lexer.AcceptSymbol();
-  /* Reduction 5
-   * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
-   */
+                _a.Free();
+                goto Branch1;
+            }
+            Debug.Assert(Symbol == LexerResult.PotOp);
+        State6:
+            // State 6
+            StateDescription =
+                 "Expression(double value)= Expression(double b), Priority30, ►\"^\", Expression(double exponent);";
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol != LexerResult.PotOp)
+            {
+                ErrorStateNumber = 6;
+                goto EndWithError1;
+            }
+            Debug.Assert(Symbol == LexerResult.PotOp);
+            Lexer.AcceptSymbol();
+            // State 7 (2)
+            StateDescription =
+                 "Expression(double value)= Expression(double b), Priority30, \"^\", ►Expression(double exponent);";
+            _s.Push(2);
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol == LexerResult.AddOp)
+                goto AcceptState23;
+            if (Symbol == LexerResult.SubOp)
+                goto AcceptState22;
+            if (Symbol == LexerResult.LeftParentheses)
+                goto AcceptState20;
+            if (Symbol == LexerResult.Number)
+            {
+                Lexer.AcceptSymbol();
+                goto State8;
+            }
+            if (Symbol != LexerResult.Identifier)
+            {
+                ErrorStateNumber = 7;
+                goto EndWithError1;
+            }
+            Debug.Assert(Symbol == LexerResult.Identifier);
+            Lexer.AcceptSymbol();
+            /* Reduction 5
+             * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
+             */
 
-  IdentifierInExpression(
-     value: out _a.PeekRef(0)._double,
-     identifier: _a.PeekClear(0)._string
-     );
+            IdentifierInExpression(
+               value: out _a.PeekRef(0)._double,
+               identifier: _a.PeekClear(0)._string
+               );
 
-s8:
-  // State 8
-  StateDescription =
-       "Expression(double value)= Expression(double multiplicand), ►Priority20, \"*\", Expression(double multiplier);\r\n"
-     + "Expression(double value)= Expression(double dividend), ►Priority20, \"/\", Expression(double divisor);\r\n"
-     + "Expression(double value)= Expression(double leftAddend), ►Priority10, \"+\", Expression(double rightAddend);\r\n"
-     + "Expression(double value)= Expression(double minuend), ►Priority10, \"-\", Expression(double subtrahend);\r\n"
-     + "Expression(double value)= Expression(double b), ►Priority30, \"^\", Expression(double exponent);\r\n"
-     + "Expression(double value)= Expression(double b), Priority30, \"^\", Expression(double exponent)●;";
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol != LexerResult.PotOp)
-     {
-     /* Reduction 6, sStack: -1, aStack: -1
-      * Expression(double value)= Expression(double b), Priority30, "^", Expression(double exponent);◄ Priority: 29, method: Power, aStack: -1
-      */
-     _s.Pop();
+        State8:
+            // State 8
+            StateDescription =
+                 "Expression(double value)= Expression(double multiplicand), ►Priority20, \"*\", Expression(double multiplier);\r\n"
+               + "Expression(double value)= Expression(double dividend), ►Priority20, \"/\", Expression(double divisor);\r\n"
+               + "Expression(double value)= Expression(double leftAddend), ►Priority10, \"+\", Expression(double rightAddend);\r\n"
+               + "Expression(double value)= Expression(double minuend), ►Priority10, \"-\", Expression(double subtrahend);\r\n"
+               + "Expression(double value)= Expression(double b), ►Priority30, \"^\", Expression(double exponent);\r\n"
+               + "Expression(double value)= Expression(double b), Priority30, \"^\", Expression(double exponent)●;";
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol != LexerResult.PotOp)
+            {
+                /* Reduction 6, sStack: -1, aStack: -1
+                 * Expression(double value)= Expression(double b), Priority30, "^", Expression(double exponent);◄ Priority: 29, method: Power, aStack: -1
+                 */
+                _s.Pop();
 
-     Power(
-        value: out _a.PeekRef(-1)._double,
-        b: _a.PeekRef(-1)._double,
-        exponent: _a.PeekRef(0)._double
-        );
+                Power(
+                   value: out _a.PeekRef(-1)._double,
+                   b: _a.PeekRef(-1)._double,
+                   exponent: _a.PeekRef(0)._double
+                   );
 
-     _a.Free();
-     goto b1;
-     }
-  Debug.Assert(Symbol == LexerResult.PotOp);
-  goto s6;
+                _a.Free();
+                goto Branch1;
+            }
+            Debug.Assert(Symbol == LexerResult.PotOp);
+            goto State6;
 
-b1:
-  /* Branch 1*/
-  switch (_s.Peek())
-  {
-  case 1:
-     goto s5;
-  case 2:
-     goto s8;
-  case 4:
-     goto s13;
-  case 5:
-     goto s16;
-  case 6:
-     goto s18;
-  case 0:
-     goto s19;
-  case 7:
-     goto s21;
-  /*case 3:
-  default: break;
-  */
-  }
-s11:
-  // State 11
-  StateDescription =
-       "Expression(double value)= Expression(double multiplicand), ►Priority20, \"*\", Expression(double multiplier);\r\n"
-     + "Expression(double value)= Expression(double dividend), ►Priority20, \"/\", Expression(double divisor);\r\n"
-     + "Expression(double value)= Expression(double leftAddend), ►Priority10, \"+\", Expression(double rightAddend);\r\n"
-     + "Expression(double value)= Expression(double minuend), ►Priority10, \"-\", Expression(double subtrahend);\r\n"
-     + "Expression(double value)= Expression(double minuend), Priority10, \"-\", Expression(double subtrahend)●;\r\n"
-     + "Expression(double value)= Expression(double b), ►Priority30, \"^\", Expression(double exponent);";
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol == LexerResult.PotOp)
-     goto s6;
-  if (Symbol == LexerResult.MultOp || Symbol == LexerResult.DivOp)
-     goto s14;
-  Debug.Assert(Symbol <= LexerResult.SubOp
-     || Symbol >= LexerResult.RightParentheses);
-  /* Reduction 8, sStack: -1, aStack: -1
-   * Expression(double value)= Expression(double minuend), Priority10, "-", Expression(double subtrahend);◄ Priority: 12, method: Sub, aStack: -1
-   */
-  _s.Pop();
+        Branch1:
+            /* Branch 1*/
+            switch (_s.Peek())
+            {
+                case 1:
+                    goto State5;
+                case 2:
+                    goto State8;
+                case 4:
+                    goto State13;
+                case 5:
+                    goto State16;
+                case 6:
+                    goto State18;
+                case 0:
+                    goto State19;
+                case 7:
+                    goto State21;
+                    /*case 3:
+                    default: break;
+                    */
+            }
+        State11:
+            // State 11
+            StateDescription =
+                 "Expression(double value)= Expression(double multiplicand), ►Priority20, \"*\", Expression(double multiplier);\r\n"
+               + "Expression(double value)= Expression(double dividend), ►Priority20, \"/\", Expression(double divisor);\r\n"
+               + "Expression(double value)= Expression(double leftAddend), ►Priority10, \"+\", Expression(double rightAddend);\r\n"
+               + "Expression(double value)= Expression(double minuend), ►Priority10, \"-\", Expression(double subtrahend);\r\n"
+               + "Expression(double value)= Expression(double minuend), Priority10, \"-\", Expression(double subtrahend)●;\r\n"
+               + "Expression(double value)= Expression(double b), ►Priority30, \"^\", Expression(double exponent);";
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol == LexerResult.PotOp)
+                goto State6;
+            if (Symbol == LexerResult.MultOp || Symbol == LexerResult.DivOp)
+                goto State14;
+            Debug.Assert(Symbol <= LexerResult.SubOp
+               || Symbol >= LexerResult.RightParentheses);
+            /* Reduction 8, sStack: -1, aStack: -1
+             * Expression(double value)= Expression(double minuend), Priority10, "-", Expression(double subtrahend);◄ Priority: 12, method: Sub, aStack: -1
+             */
+            _s.Pop();
 
-  Sub(
-     value: out _a.PeekRef(-1)._double,
-     minuend: _a.PeekRef(-1)._double,
-     subtrahend: _a.PeekRef(0)._double
-     );
+            Sub(
+               value: out _a.PeekRef(-1)._double,
+               minuend: _a.PeekRef(-1)._double,
+               subtrahend: _a.PeekRef(0)._double
+               );
 
-  _a.Free();
-  goto b1;
+            _a.Free();
+            goto Branch1;
 
-s9:
-  // State 9
-  StateDescription =
-       "Expression(double value)= Expression(double leftAddend), Priority10, ►\"+\", Expression(double rightAddend);\r\n"
-     + "Expression(double value)= Expression(double minuend), Priority10, ►\"-\", Expression(double subtrahend);";
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol >= LexerResult.MultOp)
-     {
-     ErrorStateNumber = 9;
-     goto x1;
-     }
-  if (Symbol == LexerResult.SubOp)
-     {
-     Lexer.AcceptSymbol();
-     // State 10 (3)
-     StateDescription =
-          "Expression(double value)= Expression(double minuend), Priority10, \"-\", ►Expression(double subtrahend);";
-     _s.Push(3);
-     Symbol = Lexer.PeekSymbol();
-     if (Symbol == LexerResult.AddOp)
-        goto as23;
-     if (Symbol == LexerResult.SubOp)
-        goto as22;
-     if (Symbol == LexerResult.LeftParentheses)
-        goto as20;
-     if (Symbol == LexerResult.Number)
-        {
-        Lexer.AcceptSymbol();
-        goto s11;
-        }
-     if (Symbol != LexerResult.Identifier)
-        {
-        ErrorStateNumber = 10;
-        goto x1;
-        }
-     Debug.Assert(Symbol == LexerResult.Identifier);
-     Lexer.AcceptSymbol();
-     /* Reduction 7
-      * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
-      */
+        State9:
+            // State 9
+            StateDescription =
+                 "Expression(double value)= Expression(double leftAddend), Priority10, ►\"+\", Expression(double rightAddend);\r\n"
+               + "Expression(double value)= Expression(double minuend), Priority10, ►\"-\", Expression(double subtrahend);";
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol >= LexerResult.MultOp)
+            {
+                ErrorStateNumber = 9;
+                goto EndWithError1;
+            }
+            if (Symbol == LexerResult.SubOp)
+            {
+                Lexer.AcceptSymbol();
+                // State 10 (3)
+                StateDescription =
+                     "Expression(double value)= Expression(double minuend), Priority10, \"-\", ►Expression(double subtrahend);";
+                _s.Push(3);
+                Symbol = Lexer.PeekSymbol();
+                if (Symbol == LexerResult.AddOp)
+                    goto AcceptState23;
+                if (Symbol == LexerResult.SubOp)
+                    goto AcceptState22;
+                if (Symbol == LexerResult.LeftParentheses)
+                    goto AcceptState20;
+                if (Symbol == LexerResult.Number)
+                {
+                    Lexer.AcceptSymbol();
+                    goto State11;
+                }
+                if (Symbol != LexerResult.Identifier)
+                {
+                    ErrorStateNumber = 10;
+                    goto EndWithError1;
+                }
+                Debug.Assert(Symbol == LexerResult.Identifier);
+                Lexer.AcceptSymbol();
+                /* Reduction 7
+                 * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
+                 */
 
-     IdentifierInExpression(
-        value: out _a.PeekRef(0)._double,
-        identifier: _a.PeekClear(0)._string
-        );
+                IdentifierInExpression(
+                   value: out _a.PeekRef(0)._double,
+                   identifier: _a.PeekClear(0)._string
+                   );
 
-     goto s11;
-     }
-  Debug.Assert(Symbol == LexerResult.AddOp);
-  Lexer.AcceptSymbol();
-  // State 12 (4)
-  StateDescription =
-       "Expression(double value)= Expression(double leftAddend), Priority10, \"+\", ►Expression(double rightAddend);";
-  _s.Push(4);
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol == LexerResult.AddOp)
-     goto as23;
-  if (Symbol == LexerResult.SubOp)
-     goto as22;
-  if (Symbol == LexerResult.LeftParentheses)
-     goto as20;
-  if (Symbol == LexerResult.Number)
-     {
-     Lexer.AcceptSymbol();
-     goto s13;
-     }
-  if (Symbol != LexerResult.Identifier)
-     {
-     ErrorStateNumber = 12;
-     goto x1;
-     }
-  Debug.Assert(Symbol == LexerResult.Identifier);
-  Lexer.AcceptSymbol();
-  /* Reduction 9
-   * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
-   */
+                goto State11;
+            }
+            Debug.Assert(Symbol == LexerResult.AddOp);
+            Lexer.AcceptSymbol();
+            // State 12 (4)
+            StateDescription =
+                 "Expression(double value)= Expression(double leftAddend), Priority10, \"+\", ►Expression(double rightAddend);";
+            _s.Push(4);
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol == LexerResult.AddOp)
+                goto AcceptState23;
+            if (Symbol == LexerResult.SubOp)
+                goto AcceptState22;
+            if (Symbol == LexerResult.LeftParentheses)
+                goto AcceptState20;
+            if (Symbol == LexerResult.Number)
+            {
+                Lexer.AcceptSymbol();
+                goto State13;
+            }
+            if (Symbol != LexerResult.Identifier)
+            {
+                ErrorStateNumber = 12;
+                goto EndWithError1;
+            }
+            Debug.Assert(Symbol == LexerResult.Identifier);
+            Lexer.AcceptSymbol();
+            /* Reduction 9
+             * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
+             */
 
-  IdentifierInExpression(
-     value: out _a.PeekRef(0)._double,
-     identifier: _a.PeekClear(0)._string
-     );
+            IdentifierInExpression(
+               value: out _a.PeekRef(0)._double,
+               identifier: _a.PeekClear(0)._string
+               );
 
-s13:
-  // State 13
-  StateDescription =
-       "Expression(double value)= Expression(double multiplicand), ►Priority20, \"*\", Expression(double multiplier);\r\n"
-     + "Expression(double value)= Expression(double dividend), ►Priority20, \"/\", Expression(double divisor);\r\n"
-     + "Expression(double value)= Expression(double leftAddend), ►Priority10, \"+\", Expression(double rightAddend);\r\n"
-     + "Expression(double value)= Expression(double leftAddend), Priority10, \"+\", Expression(double rightAddend)●;\r\n"
-     + "Expression(double value)= Expression(double minuend), ►Priority10, \"-\", Expression(double subtrahend);\r\n"
-     + "Expression(double value)= Expression(double b), ►Priority30, \"^\", Expression(double exponent);";
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol == LexerResult.PotOp)
-     goto s6;
-  if (Symbol == LexerResult.MultOp || Symbol == LexerResult.DivOp)
-     goto s14;
-  Debug.Assert(Symbol <= LexerResult.SubOp
-     || Symbol >= LexerResult.RightParentheses);
-  /* Reduction 10, sStack: -1, aStack: -1
-   * Expression(double value)= Expression(double leftAddend), Priority10, "+", Expression(double rightAddend);◄ Priority: 11, method: Add, aStack: -1
-   */
-  _s.Pop();
+        State13:
+            // State 13
+            StateDescription =
+                 "Expression(double value)= Expression(double multiplicand), ►Priority20, \"*\", Expression(double multiplier);\r\n"
+               + "Expression(double value)= Expression(double dividend), ►Priority20, \"/\", Expression(double divisor);\r\n"
+               + "Expression(double value)= Expression(double leftAddend), ►Priority10, \"+\", Expression(double rightAddend);\r\n"
+               + "Expression(double value)= Expression(double leftAddend), Priority10, \"+\", Expression(double rightAddend)●;\r\n"
+               + "Expression(double value)= Expression(double minuend), ►Priority10, \"-\", Expression(double subtrahend);\r\n"
+               + "Expression(double value)= Expression(double b), ►Priority30, \"^\", Expression(double exponent);";
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol == LexerResult.PotOp)
+                goto State6;
+            if (Symbol == LexerResult.MultOp || Symbol == LexerResult.DivOp)
+                goto State14;
+            Debug.Assert(Symbol <= LexerResult.SubOp
+               || Symbol >= LexerResult.RightParentheses);
+            /* Reduction 10, sStack: -1, aStack: -1
+             * Expression(double value)= Expression(double leftAddend), Priority10, "+", Expression(double rightAddend);◄ Priority: 11, method: Add, aStack: -1
+             */
+            _s.Pop();
 
-  Add(
-     value: out _a.PeekRef(-1)._double,
-     leftAddend: _a.PeekRef(-1)._double,
-     rightAddend: _a.PeekRef(0)._double
-     );
+            Add(
+               value: out _a.PeekRef(-1)._double,
+               leftAddend: _a.PeekRef(-1)._double,
+               rightAddend: _a.PeekRef(0)._double
+               );
 
-  _a.Free();
-  goto b1;
+            _a.Free();
+            goto Branch1;
 
-s18:
-  // State 18
-  StateDescription =
-       "Expression(double value)= Expression(double multiplicand), ►Priority20, \"*\", Expression(double multiplier);\r\n"
-     + "Expression(double value)= Expression(double multiplicand), Priority20, \"*\", Expression(double multiplier)●;\r\n"
-     + "Expression(double value)= Expression(double dividend), ►Priority20, \"/\", Expression(double divisor);\r\n"
-     + "Expression(double value)= Expression(double leftAddend), ►Priority10, \"+\", Expression(double rightAddend);\r\n"
-     + "Expression(double value)= Expression(double minuend), ►Priority10, \"-\", Expression(double subtrahend);\r\n"
-     + "Expression(double value)= Expression(double b), ►Priority30, \"^\", Expression(double exponent);";
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol != LexerResult.PotOp)
-     {
-     /* Reduction 14, sStack: -1, aStack: -1
-      * Expression(double value)= Expression(double multiplicand), Priority20, "*", Expression(double multiplier);◄ Priority: 21, method: Multiply, aStack: -1
-      */
-     _s.Pop();
+        State18:
+            // State 18
+            StateDescription =
+                 "Expression(double value)= Expression(double multiplicand), ►Priority20, \"*\", Expression(double multiplier);\r\n"
+               + "Expression(double value)= Expression(double multiplicand), Priority20, \"*\", Expression(double multiplier)●;\r\n"
+               + "Expression(double value)= Expression(double dividend), ►Priority20, \"/\", Expression(double divisor);\r\n"
+               + "Expression(double value)= Expression(double leftAddend), ►Priority10, \"+\", Expression(double rightAddend);\r\n"
+               + "Expression(double value)= Expression(double minuend), ►Priority10, \"-\", Expression(double subtrahend);\r\n"
+               + "Expression(double value)= Expression(double b), ►Priority30, \"^\", Expression(double exponent);";
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol != LexerResult.PotOp)
+            {
+                /* Reduction 14, sStack: -1, aStack: -1
+                 * Expression(double value)= Expression(double multiplicand), Priority20, "*", Expression(double multiplier);◄ Priority: 21, method: Multiply, aStack: -1
+                 */
+                _s.Pop();
 
-     Multiply(
-        value: out _a.PeekRef(-1)._double,
-        multiplicand: _a.PeekRef(-1)._double,
-        multiplier: _a.PeekRef(0)._double
-        );
+                Multiply(
+                   value: out _a.PeekRef(-1)._double,
+                   multiplicand: _a.PeekRef(-1)._double,
+                   multiplier: _a.PeekRef(0)._double
+                   );
 
-     _a.Free();
-     goto b1;
-     }
-  Debug.Assert(Symbol == LexerResult.PotOp);
-  goto s6;
+                _a.Free();
+                goto Branch1;
+            }
+            Debug.Assert(Symbol == LexerResult.PotOp);
+            goto State6;
 
-s19:
-  // State 19
-  StateDescription =
-       "MyGrammar= Expression(double result)●;\r\n"
-     + "Expression(double value)= Expression(double multiplicand), ►Priority20, \"*\", Expression(double multiplier);\r\n"
-     + "Expression(double value)= Expression(double dividend), ►Priority20, \"/\", Expression(double divisor);\r\n"
-     + "Expression(double value)= Expression(double leftAddend), ►Priority10, \"+\", Expression(double rightAddend);\r\n"
-     + "Expression(double value)= Expression(double minuend), ►Priority10, \"-\", Expression(double subtrahend);\r\n"
-     + "Expression(double value)= Expression(double b), ►Priority30, \"^\", Expression(double exponent);";
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol >= LexerResult.RightParentheses)
-     {
-     /* Reduction 15, aStack: -1
-      * MyGrammar= Expression(double result);◄ Priority: -100, method: WriteResult, aStack: -1
-      * then: *Startsymbol= MyGrammar;◄
-      */
+        State19:
+            // State 19
+            StateDescription =
+                 "MyGrammar= Expression(double result)●;\r\n"
+               + "Expression(double value)= Expression(double multiplicand), ►Priority20, \"*\", Expression(double multiplier);\r\n"
+               + "Expression(double value)= Expression(double dividend), ►Priority20, \"/\", Expression(double divisor);\r\n"
+               + "Expression(double value)= Expression(double leftAddend), ►Priority10, \"+\", Expression(double rightAddend);\r\n"
+               + "Expression(double value)= Expression(double minuend), ►Priority10, \"-\", Expression(double subtrahend);\r\n"
+               + "Expression(double value)= Expression(double b), ►Priority30, \"^\", Expression(double exponent);";
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol >= LexerResult.RightParentheses)
+            {
+                /* Reduction 15, aStack: -1
+                 * MyGrammar= Expression(double result);◄ Priority: -100, method: WriteResult, aStack: -1
+                 * then: *Startsymbol= MyGrammar;◄
+                 */
 
-     WriteResult(
-        result: _a.PeekRef(0)._double
-        );
+                WriteResult(
+                   result: _a.PeekRef(0)._double
+                   );
 
-     _a.Free();
-     goto h1;
-     }
-  if (Symbol <= LexerResult.SubOp)
-     goto s9;
-  if (Symbol == LexerResult.PotOp)
-     goto s6;
-  Debug.Assert(Symbol == LexerResult.MultOp || Symbol == LexerResult.DivOp);
-  goto s14;
+                _a.Free();
+                goto EndOfCode1;
+            }
+            if (Symbol <= LexerResult.SubOp)
+                goto State9;
+            if (Symbol == LexerResult.PotOp)
+                goto State6;
+            Debug.Assert(Symbol == LexerResult.MultOp || Symbol == LexerResult.DivOp);
+            goto State14;
 
-as20:
-  Lexer.AcceptSymbol();
-  // State 20 (7)
-  StateDescription =
-       "PrimaryExpression(double value)= \"(\", ►Expression(double value), \")\";";
-  _s.Push(7);
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol == LexerResult.AddOp)
-     goto as23;
-  if (Symbol == LexerResult.SubOp)
-     goto as22;
-  if (Symbol == LexerResult.LeftParentheses)
-     goto as20;
-  if (Symbol == LexerResult.Number)
-     {
-     Lexer.AcceptSymbol();
-     goto s21;
-     }
-  if (Symbol != LexerResult.Identifier)
-     {
-     ErrorStateNumber = 20;
-     goto x1;
-     }
-  Debug.Assert(Symbol == LexerResult.Identifier);
-  Lexer.AcceptSymbol();
-  /* Reduction 16
-   * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
-   */
+        AcceptState20:
+            Lexer.AcceptSymbol();
+            // State 20 (7)
+            StateDescription =
+                 "PrimaryExpression(double value)= \"(\", ►Expression(double value), \")\";";
+            _s.Push(7);
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol == LexerResult.AddOp)
+                goto AcceptState23;
+            if (Symbol == LexerResult.SubOp)
+                goto AcceptState22;
+            if (Symbol == LexerResult.LeftParentheses)
+                goto AcceptState20;
+            if (Symbol == LexerResult.Number)
+            {
+                Lexer.AcceptSymbol();
+                goto State21;
+            }
+            if (Symbol != LexerResult.Identifier)
+            {
+                ErrorStateNumber = 20;
+                goto EndWithError1;
+            }
+            Debug.Assert(Symbol == LexerResult.Identifier);
+            Lexer.AcceptSymbol();
+            /* Reduction 16
+             * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
+             */
 
-  IdentifierInExpression(
-     value: out _a.PeekRef(0)._double,
-     identifier: _a.PeekClear(0)._string
-     );
+            IdentifierInExpression(
+               value: out _a.PeekRef(0)._double,
+               identifier: _a.PeekClear(0)._string
+               );
 
-s21:
-  // State 21
-  StateDescription =
-       "Expression(double value)= Expression(double multiplicand), ►Priority20, \"*\", Expression(double multiplier);\r\n"
-     + "Expression(double value)= Expression(double dividend), ►Priority20, \"/\", Expression(double divisor);\r\n"
-     + "Expression(double value)= Expression(double leftAddend), ►Priority10, \"+\", Expression(double rightAddend);\r\n"
-     + "Expression(double value)= Expression(double minuend), ►Priority10, \"-\", Expression(double subtrahend);\r\n"
-     + "Expression(double value)= Expression(double b), ►Priority30, \"^\", Expression(double exponent);\r\n"
-     + "PrimaryExpression(double value)= \"(\", Expression(double value), ►\")\";";
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol >= LexerResult.Eol)
-     {
-     ErrorStateNumber = 21;
-     goto x1;
-     }
-  if (Symbol <= LexerResult.SubOp)
-     goto s9;
-  if (Symbol == LexerResult.PotOp)
-     goto s6;
-  if (Symbol == LexerResult.RightParentheses)
-     {
-     Lexer.AcceptSymbol();
-     /* Reduction 17, sStack: -1
-      * PrimaryExpression(double value)= "(", Expression(double value), ")";◄
-      */
-     _s.Pop();
-     /* Branch 2*/
-     switch (_s.Peek())
-     {
-     case 1:
-        goto s5;
-     case 2:
-        goto s8;
-     case 3:
-        goto s11;
-     case 4:
-        goto s13;
-     case 5:
-        goto s16;
-     case 6:
-        goto s18;
-     case 7:
-        goto s21;
-     case 8:
-        goto r18;
-     case 9:
-        goto r20;
-     /*case 0:
-     default: break;
-     */
-     }
-     goto s19;
-     }
-  Debug.Assert(Symbol == LexerResult.MultOp || Symbol == LexerResult.DivOp);
-  goto s14;
+        State21:
+            // State 21
+            StateDescription =
+                 "Expression(double value)= Expression(double multiplicand), ►Priority20, \"*\", Expression(double multiplier);\r\n"
+               + "Expression(double value)= Expression(double dividend), ►Priority20, \"/\", Expression(double divisor);\r\n"
+               + "Expression(double value)= Expression(double leftAddend), ►Priority10, \"+\", Expression(double rightAddend);\r\n"
+               + "Expression(double value)= Expression(double minuend), ►Priority10, \"-\", Expression(double subtrahend);\r\n"
+               + "Expression(double value)= Expression(double b), ►Priority30, \"^\", Expression(double exponent);\r\n"
+               + "PrimaryExpression(double value)= \"(\", Expression(double value), ►\")\";";
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol >= LexerResult.Eol)
+            {
+                ErrorStateNumber = 21;
+                goto EndWithError1;
+            }
+            if (Symbol <= LexerResult.SubOp)
+                goto State9;
+            if (Symbol == LexerResult.PotOp)
+                goto State6;
+            if (Symbol == LexerResult.RightParentheses)
+            {
+                Lexer.AcceptSymbol();
+                /* Reduction 17, sStack: -1
+                 * PrimaryExpression(double value)= "(", Expression(double value), ")";◄
+                 */
+                _s.Pop();
+                /* Branch 2*/
+                switch (_s.Peek())
+                {
+                    case 1:
+                        goto State5;
+                    case 2:
+                        goto State8;
+                    case 3:
+                        goto State11;
+                    case 4:
+                        goto State13;
+                    case 5:
+                        goto State16;
+                    case 6:
+                        goto State18;
+                    case 7:
+                        goto State21;
+                    case 8:
+                        goto Reduce18;
+                    case 9:
+                        goto Reduce20;
+                        /*case 0:
+                        default: break;
+                        */
+                }
+                goto State19;
+            }
+            Debug.Assert(Symbol == LexerResult.MultOp || Symbol == LexerResult.DivOp);
+            goto State14;
 
-as22:
-  Lexer.AcceptSymbol();
-  // State 22 (8)
-  StateDescription =
-       "Expression(double value)= \"-\", ►PrimaryExpression(double value);";
-  _s.Push(8);
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol <= LexerResult.GTChar)
-     {
-     ErrorStateNumber = 22;
-     goto x1;
-     }
-  if (Symbol == LexerResult.LeftParentheses)
-     goto as20;
-  if (Symbol == LexerResult.Number)
-     {
-     Lexer.AcceptSymbol();
-     goto r18;
-     }
-  Debug.Assert(Symbol == LexerResult.Identifier);
-  Lexer.AcceptSymbol();
-  /* Reduction 19
-   * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
-   */
+        AcceptState22:
+            Lexer.AcceptSymbol();
+            // State 22 (8)
+            StateDescription =
+                 "Expression(double value)= \"-\", ►PrimaryExpression(double value);";
+            _s.Push(8);
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol <= LexerResult.GTChar)
+            {
+                ErrorStateNumber = 22;
+                goto EndWithError1;
+            }
+            if (Symbol == LexerResult.LeftParentheses)
+                goto AcceptState20;
+            if (Symbol == LexerResult.Number)
+            {
+                Lexer.AcceptSymbol();
+                goto Reduce18;
+            }
+            Debug.Assert(Symbol == LexerResult.Identifier);
+            Lexer.AcceptSymbol();
+            /* Reduction 19
+             * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
+             */
 
-  IdentifierInExpression(
-     value: out _a.PeekRef(0)._double,
-     identifier: _a.PeekClear(0)._string
-     );
+            IdentifierInExpression(
+               value: out _a.PeekRef(0)._double,
+               identifier: _a.PeekClear(0)._string
+               );
 
-r18:
-  /* Reduction 18, sStack: -1
-   * Expression(double value)= "-", PrimaryExpression(double value);◄ method: Negative
-   */
-  _s.Pop();
+        Reduce18:
+            /* Reduction 18, sStack: -1
+             * Expression(double value)= "-", PrimaryExpression(double value);◄ method: Negative
+             */
+            _s.Pop();
 
-  Negative(
-     value: ref _a.PeekRef(0)._double
-     );
+            Negative(
+               value: ref _a.PeekRef(0)._double
+               );
 
-  goto b1;
+            goto Branch1;
 
-as23:
-  Lexer.AcceptSymbol();
-  // State 23 (9)
-  StateDescription =
-       "Expression(double value)= \"+\", ►PrimaryExpression(double value);";
-  _s.Push(9);
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol <= LexerResult.GTChar)
-     {
-     ErrorStateNumber = 23;
-     goto x1;
-     }
-  if (Symbol == LexerResult.LeftParentheses)
-     goto as20;
-  if (Symbol == LexerResult.Number)
-     {
-     Lexer.AcceptSymbol();
-     goto r20;
-     }
-  Debug.Assert(Symbol == LexerResult.Identifier);
-  Lexer.AcceptSymbol();
-  /* Reduction 21, sStack: -1
-   * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
-   * then: Expression(double value)= "+", PrimaryExpression(double value);◄
-   */
-  _s.Pop();
+        AcceptState23:
+            Lexer.AcceptSymbol();
+            // State 23 (9)
+            StateDescription =
+                 "Expression(double value)= \"+\", ►PrimaryExpression(double value);";
+            _s.Push(9);
+            Symbol = Lexer.PeekSymbol();
+            if (Symbol <= LexerResult.GTChar)
+            {
+                ErrorStateNumber = 23;
+                goto EndWithError1;
+            }
+            if (Symbol == LexerResult.LeftParentheses)
+                goto AcceptState20;
+            if (Symbol == LexerResult.Number)
+            {
+                Lexer.AcceptSymbol();
+                goto Reduce20;
+            }
+            Debug.Assert(Symbol == LexerResult.Identifier);
+            Lexer.AcceptSymbol();
+            /* Reduction 21, sStack: -1
+             * PrimaryExpression(double value)= Identifier(string identifier);◄ Priority: -101, method: IdentifierInExpression
+             * then: Expression(double value)= "+", PrimaryExpression(double value);◄
+             */
+            _s.Pop();
 
-  IdentifierInExpression(
-     value: out _a.PeekRef(0)._double,
-     identifier: _a.PeekClear(0)._string
-     );
+            IdentifierInExpression(
+               value: out _a.PeekRef(0)._double,
+               identifier: _a.PeekClear(0)._string
+               );
 
-  goto b1;
+            goto Branch1;
 
-r20:
-  /* Reduction 20, sStack: -1
-   * Expression(double value)= "+", PrimaryExpression(double value);◄
-   */
-  _s.Pop();
-  goto b1;
+        Reduce20:
+            /* Reduction 20, sStack: -1
+             * Expression(double value)= "+", PrimaryExpression(double value);◄
+             */
+            _s.Pop();
+            goto Branch1;
 
-h1:
-  // Halt: a definition of the startsymbol with 0 attributes has been recognized.
-   _s.Pop();
-  goto EndOfGeneratedCode;
-x1:
-  // This point is reached after an input error has been found
-  ErrorHandler(ErrorStateNumber, StateDescription, Symbol);
-  _s.Discard(_s.Count - StateStackInitialCount);
-  _a.Free(_a.Count - AttributeStackInitialCount);
+        EndOfCode1:
+            // Halt: a definition of the startsymbol with 0 attributes has been recognized.
+            _s.Pop();
+            goto EndOfGeneratedCode;
+        EndWithError1:
+            // This point is reached after an input error has been found
+            ErrorHandler(ErrorStateNumber, StateDescription, Symbol);
+            _s.Discard(_s.Count - StateStackInitialCount);
+            _a.Free(_a.Count - AttributeStackInitialCount);
 
-EndOfGeneratedCode:
-     ;
-#endregion grammlator generated 05.07.2019 by Grammlator version 0:21 (build 05.07.2019 22:50:10 +00:00)
+        EndOfGeneratedCode:
+            ;
+            #endregion grammlator generated 09.07.2019 by Grammlator version 0:21 (build 09.07.2019 09:28:08 +00:00)
 
             /**** This line and the lines up to the end of the file are written by hand  ****/
 

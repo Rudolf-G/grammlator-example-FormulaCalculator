@@ -152,7 +152,7 @@ namespace GrammlatorExampleFormulaCalculator
         }
 
         //|            // the priority <0 ensures that not only the first of a sequence of letters and digits is interpreted as number
-        //|       | Identifier(string identifier)  ?-1? 
+        //|       | Identifier(string identifier)  ??-1?? 
         private void AssignIdentifierToSymbol()
         {
             Symbol = LexerResult.Identifier; // identifier will be assigned by grammlator generated code
@@ -202,8 +202,8 @@ namespace GrammlatorExampleFormulaCalculator
         }
 
         //| Number(double value)=
-        //|       integer(double value, int notUsed)?-10?
-        //|     | integer(double value, int notUsed), DecimalPoint, integer(double valueOfDigits, int numberOfDigits)?-11?
+        //|       integer(double value, int notUsed)??-10??
+        //|     | integer(double value, int notUsed), DecimalPoint, integer(double valueOfDigits, int numberOfDigits)??-11??
         private static void NumberWithDigitsRecognized(ref double value, double valueOfDigits, int numberOfDigits)
         {
             value += (valueOfDigits / System.Math.Pow(10, numberOfDigits));
@@ -240,7 +240,7 @@ namespace GrammlatorExampleFormulaCalculator
             Int32 ErrorStateNumber;
 
             /***** the contens of the region "grammlator generated" are (replaced and) inserted by grammlator *****/
-#region grammlator generated 05.07.2019 by Grammlator version 0:21 (build 05.07.2019 22:50:10 +00:00)
+#region grammlator generated 09.07.2019 by Grammlator version 0:21 (build 09.07.2019 09:28:08 +00:00)
   Int32 AttributeStackInitialCount = _a.Count;
   // State 1
   StateDescription =
@@ -252,7 +252,7 @@ namespace GrammlatorExampleFormulaCalculator
   if (Symbol == ClassifierResult.DecimalPoint)
      {
      ErrorStateNumber = 1;
-     goto x1;
+     goto EndWithError1;
      }
   if (Symbol == ClassifierResult.Unknown)
      {
@@ -263,7 +263,7 @@ namespace GrammlatorExampleFormulaCalculator
 
      PassUnknownOn();
 
-     goto h2;
+     goto EndOfCode2;
      }
   if (Symbol == ClassifierResult.Digit)
      {
@@ -279,7 +279,7 @@ namespace GrammlatorExampleFormulaCalculator
         c: _a.PeekClear(-1)._char
         );
 
-     goto s2;
+     goto State2;
      }
   if (Symbol == ClassifierResult.Letter)
      {
@@ -293,7 +293,7 @@ namespace GrammlatorExampleFormulaCalculator
         c: _a.PeekClear(0)._char
         );
 
-     goto s5;
+     goto State5;
      }
   Debug.Assert(Symbol != ClassifierResult.Unknown
      && Symbol < ClassifierResult.Digit);
@@ -306,7 +306,7 @@ namespace GrammlatorExampleFormulaCalculator
 
   // Halt: a definition of the startsymbol with 0 attributes has been recognized.
   goto EndOfGeneratedCode;
-s2:
+State2:
   // State 2
   StateDescription =
        "Number(double value)= integer(double value, int notUsed)●;\r\n"
@@ -327,7 +327,7 @@ s2:
         );
 
      _a.Free();
-     goto s2;
+     goto State2;
      }
   if (Symbol == ClassifierResult.DecimalPoint)
      {
@@ -339,7 +339,7 @@ s2:
      if (Symbol != ClassifierResult.Digit)
         {
         ErrorStateNumber = 3;
-        goto x1;
+        goto EndWithError1;
         }
      Debug.Assert(Symbol == ClassifierResult.Digit);
      InputClassifier.AcceptSymbol();
@@ -354,7 +354,7 @@ s2:
         c: _a.PeekClear(-1)._char
         );
 
-     goto s4;
+     goto State4;
      }
   Debug.Assert(Symbol != ClassifierResult.Digit
      && Symbol != ClassifierResult.DecimalPoint);
@@ -362,18 +362,18 @@ s2:
    * Number(double value)= integer(double value, int notUsed);◄ Priority: -10, aStack: -1
    */
   _a.Free();
-r5:
+Reduce5:
   /* Reduction 5
    * *Startsymbol= Number(double value);◄ method: AssignNumberToSymbol, aStack: -1
    */
 
   AssignNumberToSymbol();
 
-h2:
+EndOfCode2:
   // Halt: a definition of the startsymbol with 1 attributes has been recognized.
   AttributesOfSymbol.CopyAndRemoveFrom(_a, 1);
   goto EndOfGeneratedCode;
-s4:
+State4:
   // State 4
   StateDescription =
        "Number(double value)= integer(double value, int notUsed), DecimalPoint, integer(double valueOfDigits, int numberOfDigits)●;\r\n"
@@ -392,7 +392,7 @@ s4:
         );
 
      _a.Free(3);
-     goto r5;
+     goto Reduce5;
      }
   Debug.Assert(Symbol == ClassifierResult.Digit);
   InputClassifier.AcceptSymbol();
@@ -407,9 +407,9 @@ s4:
      );
 
   _a.Free();
-  goto s4;
+  goto State4;
 
-s5:
+State5:
   // State 5
   StateDescription =
        "*Startsymbol= Identifier(string identifier)●;\r\n"
@@ -423,7 +423,7 @@ s5:
 
      AssignIdentifierToSymbol();
 
-     goto h2;
+     goto EndOfCode2;
      }
   Debug.Assert(Symbol == ClassifierResult.Digit || Symbol == ClassifierResult.Letter);
   InputClassifier.AcceptSymbol();
@@ -437,16 +437,16 @@ s5:
      );
 
   _a.Free();
-  goto s5;
+  goto State5;
 
-x1:
+EndWithError1:
   // This point is reached after an input error has been found
   ErrorHandler(ErrorStateNumber, StateDescription, Symbol);
   _a.Free(_a.Count - AttributeStackInitialCount);
 
 EndOfGeneratedCode:
      ;
-#endregion grammlator generated 05.07.2019 by Grammlator version 0:21 (build 05.07.2019 22:50:10 +00:00)
+#endregion grammlator generated 09.07.2019 by Grammlator version 0:21 (build 09.07.2019 09:28:08 +00:00)
 
             return (LexerResult)(this.Symbol);
         }
