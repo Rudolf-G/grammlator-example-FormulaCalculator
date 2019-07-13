@@ -4,47 +4,50 @@ using System;
 using System.Collections.Generic;
 
 namespace GrammlatorExampleFormulaCalculator
-{
+    {
     /// <summary>
     /// The enum <see cref="LexerResult"/> defines the set of values which can be assigned to this.Symbol by semantic methods.
     /// These identifiers and their order are used in the generated code in ReadAndAnalyze for comparisions (== but also &lt;, &gt;=, &gt;=, &gt;)
     /// </summary>
     public enum LexerResult
-    {
-        // These symbols are passed on from input to output (see Method PassSymbolOn(..)):
+        {
+        // Lexer passes these symbols on from input to output (see Method PassSymbolOn(..)):
         AddOp, SubOp, MultOp, DivOp, PotOp,
 
-        RightParentheses, Eol, EqualChar,
+        RightParentheses, EndOfLine, EqualChar,
 
-        Unknown, LTChar, GTChar,
+        OtherCharacter, DecimalPoint, // DecimalPoint outside of real number
+
+        LTChar, GTChar,
 
         LeftParentheses,
-        // These symbols are computed by MySymbolInput.cs:
+
+        // These symbols are computed by Lexer:
         Number, Identifier
-    }
+        }
 
     public static class LexerResultExtensions
-    {
+        {
         /// <summary>
         /// Convert the enum value to a one character string if appropriate else to the name of the value
         /// </summary>
         /// <param name="r">The enum value</param>
         /// <returns>The string to dispaly the enum value</returns>
         public static string MyToString(this LexerResult r)
-        {
+            {
             // Assign a character to each value of LexerResult or assign 'x'
-            const string MyDisplay = "+-*/^)x=x<>(xx";
+            const string MyDisplay = "+-*/^)x=x.<>(xx";
             char result = MyDisplay[(int)r];
 
             if (result != 'x')
                 return result.ToString();
             else
                 return r.ToString();
+            }
         }
-    }
 
     public class MyLexer : GrammlatorInputApplication<LexerResult>
-    {
+        {
         /// <summary>
         /// The MyCharacterInputClass provides the input for MySymbolInputClass
         /// </summary>
@@ -64,43 +67,43 @@ namespace GrammlatorExampleFormulaCalculator
         public MyLexer(
             MultiTypeStack attributeStack,
             Stack<Int32> stateStack,
-            MyInputClassifier inputClassifier,
-            Action<int, string, string> externalErrorHandler)
+            MyInputClassifier inputClassifier
+            )
             : base(attributeStack, stateStack)
-        {
+            {
             InputClassifier = inputClassifier;
-            ExternalErrorHandler = externalErrorHandler;
-        }
-
-        private readonly Action<int, string, string> ExternalErrorHandler;
+            }
 
         // The GetRemainigCharactersOfLine method is specific to this example
 
         /// <summary>
         /// This method positions the input behind the end of the actual input line and returns the string of skipped characters.
         /// </summary>
-        /// <returns>The string of skipped characters (without eol). Maybe the empty string.</returns>
+        /// <returns>The string of skipped characters (without EndOfLine). Maybe the empty string.</returns>
         public string GetRemainingCharactersOfLine()
-        {
-            AcceptSymbol();
-            return InputClassifier.GetRemainigCharactersOfLine();
-        }
+            {
+            string result = InputClassifier.GetRemainigCharactersOfLine();
+            if (!Accepted)
+                {
+                if (!InputClassifier.Accepted)
+                    {
+                    // OtherCharacter, digit, letter
+                    result = InputClassifier.Symbol.MyToString() + result;
+                    }
+                else
+                    {
+                    result = Symbol.MyToString() + result;
+                    }
 
-        private void ErrorHandler(int i, string stateDescription, ClassifierResult symbol)
-        {
-            /* A lexical error will occur, if the first character is a decimal point 
-             * or if a character other than a digit follows a decimal point.
-             * If the grammar would allow numbers with decimal point but no digits in front or after the decimal point
-             * no errors would occur.
-             */
-            // Call the error handler defined by the constructor
-            ExternalErrorHandler(i, stateDescription, symbol.MyToString());
-            // Return "Unknown" as the result of this call of the lexical analyzer
-            Symbol = LexerResult.Unknown;
-        }
+                AcceptSymbol();
+                }
 
+            return result;
+            }
+
+        /* The lexers grammar ist designed such that no lexer error can occur, no error handler is needed  */
         #region grammar
-        //| /* This is the first line of MySymbolInput interpreted by the grammlator System. It is interpreted as comment.
+        //| /* This is the first line of Lexer interpreted by the grammlator System. It is interpreted as comment.
         //|    All lines, which contain grammar rules start with //|. They appear as comment to the C# compiler.
         //|    The first line of the grammar lists the prefixes to be used for comparision of symbols
         //|    in the generated code (for example in MyCharacterInput.Symbol == eCharGroup.letter),
@@ -117,24 +120,24 @@ namespace GrammlatorExampleFormulaCalculator
         //|
         //| // Definition of the terminal input symbols of the lexer
         //|      AddOp | SubOp | MultOp | DivOp | PotOp 
-        //|    | RightParentheses | Eol | EqualChar 
-        //|    | Unknown(char c) | LTChar | GTChar
+        //|    | RightParentheses | EndOfLine | EqualChar 
+        //|    | OtherCharacter(char c) | LTChar | GTChar
         //|    | LeftParentheses  
         //|    | Digit(char c) | Letter(char c) | DecimalPoint 
 
         /* The C# enum at this place is optional. If present it must conicide with the terminal definitions above. */
         public enum CopyOfClassifierResult
-        {
+            {
             AddOp, SubOp, MultOp, DivOp, PotOp,
 
-            RightParentheses, Eol, EqualChar,
+            RightParentheses, EndOfLine, EqualChar,
 
-            Unknown, LTChar, GTChar,
+            OtherCharacter, LTChar, GTChar,
 
             LeftParentheses,
 
             Digit, Letter, DecimalPoint
-        };
+            };
 
         //|    /* The attributes of the terminal symbols are defined by a type identifier and an attribute identifier.
         //|       The attribute type must be exactly as given by MyCharacterInput. The identifier has only documentary purposes.
@@ -147,34 +150,40 @@ namespace GrammlatorExampleFormulaCalculator
         //| *=   // C# definition of the symbols which MySymbolInput may recognize. The C# code in the following lines can also be placed outside of the grammar.
         //|       Number(double value) 
         private void AssignNumberToSymbol()
-        {
+            {
             Symbol = LexerResult.Number; // value will be assigned by grammlator generated code
-        }
+            }
 
         //|            // the priority <0 ensures that not only the first of a sequence of letters and digits is interpreted as number
-        //|       | Identifier(string identifier)  ??-1?? 
+        //|       | Identifier(string identifier)  ??-1?? // Make identifier greedy
         private void AssignIdentifierToSymbol()
-        {
+            {
             Symbol = LexerResult.Identifier; // identifier will be assigned by grammlator generated code
-        }
+            }
 
         //|       | SymbolToPassOn
         private void PassSymbolOn()
-        {
+            {
             /* This is a short but not trivial solution to pass input symbols as result to the calling method.
              * Precondition is the consistent definition of the enumerations LexerResult and CharGroupEnum
              * and the knowledge, that there has been no look ahead */
             Symbol = (LexerResult)(InputClassifier.Symbol);
-        }
+            }
 
-        //|    | Unknown(char c)
-        private void PassUnknownOn()
-        {
-            Symbol = LexerResult.Unknown;
-        }
+        //|    | OtherCharacter(char c)
+        private void PassOtherCharacterOn()
+            {
+            Symbol = LexerResult.OtherCharacter;
+            }
+
+        //|    | DecimalPoint
+        private void PassDecimalPointOn()
+            {
+            Symbol = LexerResult.DecimalPoint;
+            }
 
         //| SymbolToPassOn=
-        //|         Eol
+        //|         EndOfLine
         //|       | LTChar 
         //|       | GTChar
         //|       | EqualChar 
@@ -189,37 +198,38 @@ namespace GrammlatorExampleFormulaCalculator
         //| integer(double value, int length)= 
         //|    Digit(char c)
         private static void FirstdigitOfNumberRecognized(out double value, out int length, char c)
-        {
+            {
             value = (int)c - (int)'0';
             length = 1;
-        }
+            }
 
         //|    | integer(double value, int length), Digit(char nextDigit) 
         private static void IntegerFollowedByDigitRecognized(ref double value, ref int length, char nextDigit)
-        {
+            {
             value = (value * 10) + ((int)nextDigit - (int)'0');
             length++;
-        }
+            }
 
         //| Number(double value)=
         //|       integer(double value, int notUsed)??-10??
+        //|     | integer(double value, int notUsed), DecimalPoint ??-10?? // allow number ending with decimal point
         //|     | integer(double value, int notUsed), DecimalPoint, integer(double valueOfDigits, int numberOfDigits)??-11??
         private static void NumberWithDigitsRecognized(ref double value, double valueOfDigits, int numberOfDigits)
-        {
+            {
             value += (valueOfDigits / System.Math.Pow(10, numberOfDigits));
-        }
+            }
 
         //| Identifier(string identifier)=
         //|       Letter(char c)
         private static void FirstCharOfIdentifierRecognized(out string identifier, char c)
-        {
+            {
             identifier = c.ToString();
-        }
+            }
         //|     | Identifier(string identifier), letterOrDigit(char c)
         private static void OneMoreCharacterOfIdentifierRecognized(ref string identifier, char c)
-        {
+            {
             identifier += c.ToString();
-        }
+            }
 
         //| letterOrDigit(char c)=  // special case of overlapping attributes. No method needed.
         //|       Letter(char c)
@@ -230,225 +240,231 @@ namespace GrammlatorExampleFormulaCalculator
         //  The following few lines up to "#region grammlator generated ..." and the lines after #endregion are programmed manually
 
         public override LexerResult PeekSymbol()
-        {
+            {
             if (!Accepted)
                 return (LexerResult)this.Symbol;
             Accepted = false;
 
-            String StateDescription;
+            // Variables which the programmer has to provide for the code generated by grammlator:
+            String StateDescription; // may be used for debugging
             ClassifierResult Symbol;
-            Int32 ErrorStateNumber;
+            // Int32 ErrorStateNumber; // not used because the lexers grammar avoids illegal input
 
-            /***** the contens of the region "grammlator generated" are (replaced and) inserted by grammlator *****/
-#region grammlator generated 09.07.2019 by Grammlator version 0:21 (build 09.07.2019 09:28:08 +00:00)
-  Int32 AttributeStackInitialCount = _a.Count;
-  // State 1
-  StateDescription =
-       "*Startsymbol= ►Number(double value);\r\n"
-     + "*Startsymbol= ►Identifier(string identifier);\r\n"
-     + "*Startsymbol= ►SymbolToPassOn;\r\n"
-     + "*Startsymbol= ►Unknown(char c);";
-  Symbol = InputClassifier.PeekSymbol();
-  if (Symbol == ClassifierResult.DecimalPoint)
-     {
-     ErrorStateNumber = 1;
-     goto EndWithError1;
-     }
-  if (Symbol == ClassifierResult.Unknown)
-     {
-     InputClassifier.AcceptSymbol();
-     /* Reduction 2
-      * *Startsymbol= Unknown(char c);◄ method: PassUnknownOn, aStack: -1
-      */
+#pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
+            /***** the contents of the region "grammlator generated" are (replaced and) inserted by grammlator *****/
+            #region grammlator generated 13.07.2019 by Grammlator version 0:21 (build 13.07.2019 17:21:24 +00:00)
+            // State 1
+            StateDescription =
+                 "*Startsymbol= ►Number(double value);\r\n"
+               + "*Startsymbol= ►Identifier(string identifier);\r\n"
+               + "*Startsymbol= ►SymbolToPassOn;\r\n"
+               + "*Startsymbol= ►OtherCharacter(char c);\r\n"
+               + "*Startsymbol= ►DecimalPoint;";
+            Symbol = InputClassifier.PeekSymbol();
+            if (Symbol == ClassifierResult.OtherCharacter)
+                {
+                InputClassifier.AcceptSymbol();
+                /* Reduction 2
+                 * *Startsymbol= OtherCharacter(char c);◄ method: PassOtherCharacterOn, aStack: -1
+                 */
 
-     PassUnknownOn();
+                PassOtherCharacterOn();
 
-     goto EndOfCode2;
-     }
-  if (Symbol == ClassifierResult.Digit)
-     {
-     InputClassifier.AcceptSymbol();
-     /* Reduction 3, aStack: 1
-      * integer(double value, int length)= Digit(char c);◄ aStack: 1, method: FirstdigitOfNumberRecognized
-      */
-     _a.Allocate();
+                goto ApplyStartsymbolDefinition2;
+                }
+            if (Symbol == ClassifierResult.Digit)
+                {
+                InputClassifier.AcceptSymbol();
+                /* Reduction 3, aStack: 1
+                 * integer(double value, int length)= Digit(char c);◄ aStack: 1, method: FirstdigitOfNumberRecognized
+                 */
+                _a.Allocate();
 
-     FirstdigitOfNumberRecognized(
-        value: out _a.PeekRef(-1)._double,
-        length: out _a.PeekRef(0)._int,
-        c: _a.PeekClear(-1)._char
-        );
+                FirstdigitOfNumberRecognized(
+                   value: out _a.PeekRef(-1)._double,
+                   length: out _a.PeekRef(0)._int,
+                   c: _a.PeekClear(-1)._char
+                   );
 
-     goto State2;
-     }
-  if (Symbol == ClassifierResult.Letter)
-     {
-     InputClassifier.AcceptSymbol();
-     /* Reduction 4
-      * Identifier(string identifier)= Letter(char c);◄ method: FirstCharOfIdentifierRecognized
-      */
+                goto State2;
+                }
+            if (Symbol == ClassifierResult.Letter)
+                {
+                InputClassifier.AcceptSymbol();
+                /* Reduction 4
+                 * Identifier(string identifier)= Letter(char c);◄ method: FirstCharOfIdentifierRecognized
+                 */
 
-     FirstCharOfIdentifierRecognized(
-        identifier: out _a.PeekRef(0)._string,
-        c: _a.PeekClear(0)._char
-        );
+                FirstCharOfIdentifierRecognized(
+                   identifier: out _a.PeekRef(0)._string,
+                   c: _a.PeekClear(0)._char
+                   );
 
-     goto State5;
-     }
-  Debug.Assert(Symbol != ClassifierResult.Unknown
-     && Symbol < ClassifierResult.Digit);
-  InputClassifier.AcceptSymbol();
-  /* Reduction 1
-   * *Startsymbol= SymbolToPassOn;◄ method: PassSymbolOn
-   */
+                goto State5;
+                }
+            if (Symbol == ClassifierResult.DecimalPoint)
+                {
+                InputClassifier.AcceptSymbol();
+                /* Reduction 5
+                 * *Startsymbol= DecimalPoint;◄ method: PassDecimalPointOn
+                 */
 
-  PassSymbolOn();
+                PassDecimalPointOn();
 
-  // Halt: a definition of the startsymbol with 0 attributes has been recognized.
-  goto EndOfGeneratedCode;
-State2:
-  // State 2
-  StateDescription =
-       "Number(double value)= integer(double value, int notUsed)●;\r\n"
-     + "Number(double value)= integer(double value, int notUsed), ►DecimalPoint, integer(double valueOfDigits, int numberOfDigits);\r\n"
-     + "integer(double value, int length)= integer(double value, int length), ►Digit(char nextDigit);";
-  Symbol = InputClassifier.PeekSymbol();
-  if (Symbol == ClassifierResult.Digit)
-     {
-     InputClassifier.AcceptSymbol();
-     /* Reduction 7, aStack: -1
-      * integer(double value, int length)= integer(double value, int length), Digit(char nextDigit);◄ method: IntegerFollowedByDigitRecognized, aStack: -1
-      */
+                goto EndOfGeneratedCode1;
+                }
+            Debug.Assert(Symbol != ClassifierResult.OtherCharacter
+               && Symbol < ClassifierResult.Digit);
+            InputClassifier.AcceptSymbol();
+            /* Reduction 1
+             * *Startsymbol= SymbolToPassOn;◄ method: PassSymbolOn
+             */
 
-     IntegerFollowedByDigitRecognized(
-        value: ref _a.PeekRef(-2)._double,
-        length: ref _a.PeekRef(-1)._int,
-        nextDigit: _a.PeekRef(0)._char
-        );
+            PassSymbolOn();
 
-     _a.Free();
-     goto State2;
-     }
-  if (Symbol == ClassifierResult.DecimalPoint)
-     {
-     InputClassifier.AcceptSymbol();
-     // State 3
-     StateDescription =
-          "Number(double value)= integer(double value, int notUsed), DecimalPoint, ►integer(double valueOfDigits, int numberOfDigits);";
-     Symbol = InputClassifier.PeekSymbol();
-     if (Symbol != ClassifierResult.Digit)
-        {
-        ErrorStateNumber = 3;
-        goto EndWithError1;
-        }
-     Debug.Assert(Symbol == ClassifierResult.Digit);
-     InputClassifier.AcceptSymbol();
-     /* Reduction 8, aStack: 1
-      * integer(double value, int length)= Digit(char c);◄ aStack: 1, method: FirstdigitOfNumberRecognized
-      */
-     _a.Allocate();
+            goto EndOfGeneratedCode1;
 
-     FirstdigitOfNumberRecognized(
-        value: out _a.PeekRef(-1)._double,
-        length: out _a.PeekRef(0)._int,
-        c: _a.PeekClear(-1)._char
-        );
+        State2:
+            // State 2
+            StateDescription =
+                 "Number(double value)= integer(double value, int notUsed)●;\r\n"
+               + "Number(double value)= integer(double value, int notUsed), ►DecimalPoint;\r\n"
+               + "Number(double value)= integer(double value, int notUsed), ►DecimalPoint, integer(double valueOfDigits, int numberOfDigits);\r\n"
+               + "integer(double value, int length)= integer(double value, int length), ►Digit(char nextDigit);";
+            Symbol = InputClassifier.PeekSymbol();
+            if (Symbol == ClassifierResult.Digit)
+                {
+                InputClassifier.AcceptSymbol();
+                /* Reduction 8, aStack: -1
+                 * integer(double value, int length)= integer(double value, int length), Digit(char nextDigit);◄ method: IntegerFollowedByDigitRecognized, aStack: -1
+                 */
 
-     goto State4;
-     }
-  Debug.Assert(Symbol != ClassifierResult.Digit
-     && Symbol != ClassifierResult.DecimalPoint);
-  /* Reduction 6, aStack: -1
-   * Number(double value)= integer(double value, int notUsed);◄ Priority: -10, aStack: -1
-   */
-  _a.Free();
-Reduce5:
-  /* Reduction 5
-   * *Startsymbol= Number(double value);◄ method: AssignNumberToSymbol, aStack: -1
-   */
+                IntegerFollowedByDigitRecognized(
+                   value: ref _a.PeekRef(-2)._double,
+                   length: ref _a.PeekRef(-1)._int,
+                   nextDigit: _a.PeekRef(0)._char
+                   );
 
-  AssignNumberToSymbol();
+                _a.Free();
+                goto State2;
+                }
+            if (Symbol == ClassifierResult.DecimalPoint)
+                {
+                InputClassifier.AcceptSymbol();
+                // State 3
+                StateDescription =
+                     "Number(double value)= integer(double value, int notUsed), DecimalPoint●;\r\n"
+                   + "Number(double value)= integer(double value, int notUsed), DecimalPoint, ►integer(double valueOfDigits, int numberOfDigits);";
+                Symbol = InputClassifier.PeekSymbol();
+                if (Symbol != ClassifierResult.Digit)
+                    goto Reduce7;
+                Debug.Assert(Symbol == ClassifierResult.Digit);
+                InputClassifier.AcceptSymbol();
+                /* Reduction 9, aStack: 1
+                 * integer(double value, int length)= Digit(char c);◄ aStack: 1, method: FirstdigitOfNumberRecognized
+                 */
+                _a.Allocate();
 
-EndOfCode2:
-  // Halt: a definition of the startsymbol with 1 attributes has been recognized.
-  AttributesOfSymbol.CopyAndRemoveFrom(_a, 1);
-  goto EndOfGeneratedCode;
-State4:
-  // State 4
-  StateDescription =
-       "Number(double value)= integer(double value, int notUsed), DecimalPoint, integer(double valueOfDigits, int numberOfDigits)●;\r\n"
-     + "integer(double value, int length)= integer(double value, int length), ►Digit(char nextDigit);";
-  Symbol = InputClassifier.PeekSymbol();
-  if (Symbol != ClassifierResult.Digit)
-     {
-     /* Reduction 9, aStack: -3
-      * Number(double value)= integer(double value, int notUsed), DecimalPoint, integer(double valueOfDigits, int numberOfDigits);◄ Priority: -11, method: NumberWithDigitsRecognized, aStack: -3
-      */
+                FirstdigitOfNumberRecognized(
+                   value: out _a.PeekRef(-1)._double,
+                   length: out _a.PeekRef(0)._int,
+                   c: _a.PeekClear(-1)._char
+                   );
 
-     NumberWithDigitsRecognized(
-        value: ref _a.PeekRef(-3)._double,
-        valueOfDigits: _a.PeekRef(-1)._double,
-        numberOfDigits: _a.PeekRef(0)._int
-        );
+                goto State4;
+                }
+            Debug.Assert(Symbol != ClassifierResult.Digit
+               && Symbol != ClassifierResult.DecimalPoint);
+        Reduce7:
+            /* Reduction 7, aStack: -1
+             * Number(double value)= integer(double value, int notUsed);◄ Priority: -10, aStack: -1
+             */
+            _a.Free();
+        Reduce6:
+            /* Reduction 6
+             * *Startsymbol= Number(double value);◄ method: AssignNumberToSymbol, aStack: -1
+             */
 
-     _a.Free(3);
-     goto Reduce5;
-     }
-  Debug.Assert(Symbol == ClassifierResult.Digit);
-  InputClassifier.AcceptSymbol();
-  /* Reduction 10, aStack: -1
-   * integer(double value, int length)= integer(double value, int length), Digit(char nextDigit);◄ method: IntegerFollowedByDigitRecognized, aStack: -1
-   */
+            AssignNumberToSymbol();
 
-  IntegerFollowedByDigitRecognized(
-     value: ref _a.PeekRef(-2)._double,
-     length: ref _a.PeekRef(-1)._int,
-     nextDigit: _a.PeekRef(0)._char
-     );
+        ApplyStartsymbolDefinition2:
+            // Halt: a definition of the startsymbol with 1 attributes has been recognized.
+            AttributesOfSymbol.CopyAndRemoveFrom(_a, 1);
+            goto EndOfGeneratedCode1;
 
-  _a.Free();
-  goto State4;
+        State4:
+            // State 4
+            StateDescription =
+                 "Number(double value)= integer(double value, int notUsed), DecimalPoint, integer(double valueOfDigits, int numberOfDigits)●;\r\n"
+               + "integer(double value, int length)= integer(double value, int length), ►Digit(char nextDigit);";
+            Symbol = InputClassifier.PeekSymbol();
+            if (Symbol != ClassifierResult.Digit)
+                {
+                /* Reduction 10, aStack: -3
+                 * Number(double value)= integer(double value, int notUsed), DecimalPoint, integer(double valueOfDigits, int numberOfDigits);◄ Priority: -11, method: NumberWithDigitsRecognized, aStack: -3
+                 */
 
-State5:
-  // State 5
-  StateDescription =
-       "*Startsymbol= Identifier(string identifier)●;\r\n"
-     + "Identifier(string identifier)= Identifier(string identifier), ►letterOrDigit(char c);";
-  Symbol = InputClassifier.PeekSymbol();
-  if (Symbol != ClassifierResult.Digit && Symbol != ClassifierResult.Letter)
-     {
-     /* Reduction 11
-      * *Startsymbol= Identifier(string identifier);◄ Priority: -1, method: AssignIdentifierToSymbol, aStack: -1
-      */
+                NumberWithDigitsRecognized(
+                   value: ref _a.PeekRef(-3)._double,
+                   valueOfDigits: _a.PeekRef(-1)._double,
+                   numberOfDigits: _a.PeekRef(0)._int
+                   );
 
-     AssignIdentifierToSymbol();
+                _a.Free(3);
+                goto Reduce6;
+                }
+            Debug.Assert(Symbol == ClassifierResult.Digit);
+            InputClassifier.AcceptSymbol();
+            /* Reduction 11, aStack: -1
+             * integer(double value, int length)= integer(double value, int length), Digit(char nextDigit);◄ method: IntegerFollowedByDigitRecognized, aStack: -1
+             */
 
-     goto EndOfCode2;
-     }
-  Debug.Assert(Symbol == ClassifierResult.Digit || Symbol == ClassifierResult.Letter);
-  InputClassifier.AcceptSymbol();
-  /* Reduction 12, aStack: -1
-   * Identifier(string identifier)= Identifier(string identifier), letterOrDigit(char c);◄ method: OneMoreCharacterOfIdentifierRecognized, aStack: -1
-   */
+            IntegerFollowedByDigitRecognized(
+               value: ref _a.PeekRef(-2)._double,
+               length: ref _a.PeekRef(-1)._int,
+               nextDigit: _a.PeekRef(0)._char
+               );
 
-  OneMoreCharacterOfIdentifierRecognized(
-     identifier: ref _a.PeekRef(-1)._string,
-     c: _a.PeekRef(0)._char
-     );
+            _a.Free();
+            goto State4;
 
-  _a.Free();
-  goto State5;
+        State5:
+            // State 5
+            StateDescription =
+                 "*Startsymbol= Identifier(string identifier)●;\r\n"
+               + "Identifier(string identifier)= Identifier(string identifier), ►letterOrDigit(char c);";
+            Symbol = InputClassifier.PeekSymbol();
+            if (Symbol != ClassifierResult.Digit && Symbol != ClassifierResult.Letter)
+                {
+                /* Reduction 12
+                 * *Startsymbol= Identifier(string identifier);◄ Priority: -1, method: AssignIdentifierToSymbol, aStack: -1
+                 */
 
-EndWithError1:
-  // This point is reached after an input error has been found
-  ErrorHandler(ErrorStateNumber, StateDescription, Symbol);
-  _a.Free(_a.Count - AttributeStackInitialCount);
+                AssignIdentifierToSymbol();
 
-EndOfGeneratedCode:
-     ;
-#endregion grammlator generated 09.07.2019 by Grammlator version 0:21 (build 09.07.2019 09:28:08 +00:00)
+                goto ApplyStartsymbolDefinition2;
+                }
+            Debug.Assert(Symbol == ClassifierResult.Digit || Symbol == ClassifierResult.Letter);
+            InputClassifier.AcceptSymbol();
+            /* Reduction 13, aStack: -1
+             * Identifier(string identifier)= Identifier(string identifier), letterOrDigit(char c);◄ method: OneMoreCharacterOfIdentifierRecognized, aStack: -1
+             */
+
+            OneMoreCharacterOfIdentifierRecognized(
+               identifier: ref _a.PeekRef(-1)._string,
+               c: _a.PeekRef(0)._char
+               );
+
+            _a.Free();
+            goto State5;
+
+        EndOfGeneratedCode1:
+            ;
+
+            #endregion grammlator generated 13.07.2019 by Grammlator version 0:21 (build 13.07.2019 17:21:24 +00:00)
+#pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
 
             return (LexerResult)(this.Symbol);
+            }
         }
     }
-}
