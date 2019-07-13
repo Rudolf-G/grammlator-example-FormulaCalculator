@@ -82,22 +82,28 @@ namespace GrammlatorExampleFormulaCalculator
         /// <returns>The string of skipped characters (without EndOfLine). Maybe the empty string.</returns>
         public string GetRemainingCharactersOfLine()
             {
-            string result = InputClassifier.GetRemainigCharactersOfLine();
+            string result = ""; //  InputClassifier.GetRemainigCharactersOfLine();
             if (!Accepted)
                 {
-                if (!InputClassifier.Accepted)
-                    {
-                    // OtherCharacter, digit, letter
-                    result = InputClassifier.Symbol.MyToString() + result;
-                    }
-                else
-                    {
-                    result = Symbol.MyToString() + result;
-                    }
 
+                switch (Symbol)
+                    {
+                    case LexerResult.Identifier:
+                        result = AttributesOfSymbol.PeekRef(0)._string;
+                        break;
+                    case LexerResult.OtherCharacter:
+                        result = AttributesOfSymbol.PeekRef(0)._char.ToString();
+                        break;
+                    case LexerResult.EndOfLine:
+                        break;
+                    default:
+                        result = Symbol.MyToString();
+                        break;
+                    }
                 AcceptSymbol();
                 }
 
+            result += InputClassifier.GetRemainigCharactersOfLine();
             return result;
             }
 

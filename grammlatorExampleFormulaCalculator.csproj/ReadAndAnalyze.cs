@@ -93,8 +93,7 @@ pi=355/113
             }
 
         // A dictionary will be used to store identifiers and their values
-        private readonly Dictionary<string, double>
-            MyDictionary = new Dictionary<string, double>();
+        private Dictionary<string, double> MyDictionary;
 
         /// <summary>
         /// This method implements multiple calls of the calculator 
@@ -104,8 +103,12 @@ pi=355/113
             Console.OutputEncoding = System.Text.Encoding.Unicode;
 
             Console.WriteLine(HowtoUse);
-            MyDictionary.Add("pi", Math.PI);
-            MyDictionary.Add("e", Math.E);
+
+            MyDictionary
+                = new Dictionary<string, double> {
+                    { "pi", Math.PI },
+                    { "e", Math.E }
+                };
 
             // This is a manually programmed input loop with calls to ComputeExpression
             while (true)
@@ -208,8 +211,8 @@ pi=355/113
         //| /* The following first grammar rule defines the special startsymbol "*"   */
         //| *= MyGrammar; // , EndOfLine;
         //|
-        //| /* If we remove ", EndOfLine", grammlator will find more conflicts, because
-        //|  * then  "1" would be a valid input but also "1+2" and it is not defined
+        //| /* Because ", EndOfLine" is commented out, grammlator finds more conflicts,
+        //|  * because "1" would be a valid input but also "1+2" and it is not defined
         //|  * in the second case whether the parser should stop after "1" or accept "+".
         //|  * In this case the below given constant priorities 101, -100 and -101
         //|  * will solve these conflicts.

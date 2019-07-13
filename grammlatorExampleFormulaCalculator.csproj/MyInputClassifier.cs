@@ -81,11 +81,15 @@ namespace GrammlatorExampleFormulaCalculator
             {
             string result = "";
             if (!Accepted)
-                result = Symbol.MyToString();
+                {
+                if (Column < inputLine.Length)
+                    result = Symbol.MyToString();
+                AcceptSymbol();
+                }
+
             if (Column < inputLine.Length)
                 result += inputLine.Substring(Column);
             Column = inputLine.Length + 1;
-            Accepted = true;
             return result;
             }
 
