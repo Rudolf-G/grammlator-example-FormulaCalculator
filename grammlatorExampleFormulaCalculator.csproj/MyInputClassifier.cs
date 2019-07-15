@@ -83,7 +83,7 @@ namespace GrammlatorExampleFormulaCalculator
             if (!Accepted)
                 {
                 if (Column < inputLine.Length)
-                    result = Symbol.MyToString();
+                    result = InputCharacter.ToString();
                 AcceptSymbol();
                 }
 
@@ -106,6 +106,8 @@ namespace GrammlatorExampleFormulaCalculator
             Column++;
             }
 
+        private char InputCharacter;  // character code to be classified and to be used as attribute of Digit and Letter
+
         /// <summary>
         /// If accepted is false, <see cref="PeekSymbol"/> does nothing,
         /// else it will retrieve the next "Symbol" and store its attributes (if any) in private variables.
@@ -121,28 +123,26 @@ namespace GrammlatorExampleFormulaCalculator
                 Column = 0;
                 }
 
-            char c;  // character code to be classified and to be used as attribute of Digit and Letter
-
             if (Column == inputLine.Length)
                 {
-                c = '\n'; // end of line is interpreted as Eol character
+                InputCharacter = '\n'; // end of line is interpreted as Eol character
                 }
             else
                 {
-                c = inputLine[Column];
+                InputCharacter = inputLine[Column];
                 }
 
-            if (char.IsDigit(c))
+            if (char.IsDigit(InputCharacter))
                 {
                 Symbol = ClassifierResult.Digit;
                 }
-            else if (char.IsLetter(c))
+            else if (char.IsLetter(InputCharacter))
                 {
                 Symbol = ClassifierResult.Letter;
                 }
             else
                 {
-                switch (c)
+                switch (InputCharacter)
                     {
                     case '+':
                         Symbol = ClassifierResult.AddOp;
@@ -194,7 +194,7 @@ namespace GrammlatorExampleFormulaCalculator
                 )
                 {
                 AttributesOfSymbol.Allocate(1);
-                AttributesOfSymbol.PeekRef(0)._char = c;
+                AttributesOfSymbol.PeekRef(0)._char = InputCharacter;
                 }
 
             return Symbol;

@@ -85,17 +85,27 @@ namespace GrammlatorExampleFormulaCalculator
             string result = ""; //  InputClassifier.GetRemainigCharactersOfLine();
             if (!Accepted)
                 {
+                /* The lexer found a symbol which has been not accepted by the parser.
+                 * The lexer accepted its character(s) from the InputClassifier.
+                 * Try to reconstruct the character or string.
+                 */
 
                 switch (Symbol)
                     {
-                    case LexerResult.Identifier:
-                        result = AttributesOfSymbol.PeekRef(0)._string;
+                    case LexerResult.Identifier: // do not show "Identifier" but the string of characters
+                        result = AttributesOfSymbol.PeekRef(0)._string; // Access the attribute of Identifier(string identifier)
                         break;
-                    case LexerResult.OtherCharacter:
-                        result = AttributesOfSymbol.PeekRef(0)._char.ToString();
+                    case LexerResult.OtherCharacter: // do not show "OtherCharacter" but the character
+                        result = AttributesOfSymbol.PeekRef(0)._char.ToString(); // Access the attribute of OtherCharacter(char c)
                         break;
-                    case LexerResult.EndOfLine:
+                    case LexerResult.EndOfLine: // do not show "EndOfLine"
                         break;
+                    //case LexerResult.Number: 
+                    // /* Because this lexer didn't store additional information it is not possible to reconstruct
+                    //  * the exact input string of a "Number" whithout major changes.
+                    //  * A number-input is never treated as an error in the parser. So this does not affect
+                    //  * the error messages shown by the parser. */
+                    //    break;
                     default:
                         result = Symbol.MyToString();
                         break;
