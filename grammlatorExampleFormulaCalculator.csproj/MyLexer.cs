@@ -268,7 +268,7 @@ namespace GrammlatorExampleFormulaCalculator
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
             /***** the contents of the region "grammlator generated" are (replaced and) inserted by grammlator *****/
-#region grammlator generated 10.11.2019 by Grammlator version 0:21 (build 10.11.2019 14:23:44 +00:00)
+#region grammlator generated Fri, 07 Feb 2020 21:38:31 GMT by Grammlator version 0:21 (build Fri, 07 Feb 2020 21:36:30 GMT)
   /* State 1
    * *Startsymbol= ►Number(double value);
    * *Startsymbol= ►Identifier(string identifier);
@@ -349,7 +349,7 @@ Reduce6:
 
 ApplyStartsymbolDefinition2:
   // Halt: a definition of the startsymbol with 1 attributes has been recognized.
-  AttributesOfSymbol.CopyAndRemoveFrom(_a, 1);
+AttributesOfSymbol.CopyAndRemoveFrom(_a, 1);
   goto EndOfGeneratedCode1;
 
 State2:
@@ -376,7 +376,7 @@ State2:
      _a.Free();
      goto State2;
      }
-  if (Symbol == ClassifierResult.DecimalPoint)
+  if (Symbol >= ClassifierResult.DecimalPoint)
      {
      InputClassifier.AcceptSymbol();
      /* State 3
@@ -402,7 +402,7 @@ State2:
      goto State4;
      }
   Debug.Assert(Symbol != ClassifierResult.Digit
-     && Symbol != ClassifierResult.DecimalPoint);
+     && Symbol < ClassifierResult.DecimalPoint);
 Reduce7:
   /* Reduction 7, aStack: -1
    * Number(double value)= integer(double value, int notUsed);◄ Priority: -10, aStack: -1
@@ -488,8 +488,7 @@ AcceptReduce1:
 
 EndOfGeneratedCode1:
   ;
-
-#endregion grammlator generated 10.11.2019 by Grammlator version 0:21 (build 10.11.2019 14:23:44 +00:00)
+#endregion grammlator generated Fri, 07 Feb 2020 21:38:31 GMT by Grammlator version 0:21 (build Fri, 07 Feb 2020 21:36:30 GMT)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
 
             return (LexerResult)(this.Symbol);
