@@ -65,7 +65,7 @@ namespace GrammlatorExampleFormulaCalculator
         /// <param name="inputClassifier"></param>
         /// <param name="externalErrorHandler"></param>
         public MyLexer(
-            MultiTypeStack attributeStack,
+            StackOfMultiTypeElements attributeStack,
             Stack<Int32> stateStack,
             MyInputClassifier inputClassifier
             )
@@ -268,7 +268,7 @@ namespace GrammlatorExampleFormulaCalculator
 
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
             /***** the contents of the region "grammlator generated" are (replaced and) inserted by grammlator *****/
-#region grammlator generated Fri, 07 Feb 2020 21:38:31 GMT by Grammlator version 0:21 (build Fri, 07 Feb 2020 21:36:30 GMT)
+#region grammlator generated Fri, 24 Jul 2020 22:31:58 GMT (grammlator, File version 2020.04.07.1 24.07.2020 22:20:02)
   /* State 1
    * *Startsymbol= ►Number(double value);
    * *Startsymbol= ►Identifier(string identifier);
@@ -328,7 +328,7 @@ namespace GrammlatorExampleFormulaCalculator
   // >= ClassifierResult.DecimalPoint: goto AcceptReduce5 // see end of switch
   } // end of switch
   if (Symbol <= ClassifierResult.EqualChar)
-     goto AcceptReduce1;
+  goto AcceptReduce1;
   Debug.Assert(Symbol >= ClassifierResult.DecimalPoint);
 
   InputClassifier.AcceptSymbol();
@@ -338,7 +338,7 @@ namespace GrammlatorExampleFormulaCalculator
 
   PassDecimalPointOn();
 
-  goto EndOfGeneratedCode1;
+  goto EndOfGeneratedCode;
 
 Reduce6:
   /* Reduction 6
@@ -350,7 +350,7 @@ Reduce6:
 ApplyStartsymbolDefinition2:
   // Halt: a definition of the startsymbol with 1 attributes has been recognized.
 AttributesOfSymbol.CopyAndRemoveFrom(_a, 1);
-  goto EndOfGeneratedCode1;
+  goto EndOfGeneratedCode;
 
 State2:
   /* State 2
@@ -405,7 +405,8 @@ State2:
      && Symbol < ClassifierResult.DecimalPoint);
 Reduce7:
   /* Reduction 7, aStack: -1
-   * Number(double value)= integer(double value, int notUsed);◄ Priority: -10, aStack: -1
+   * Number(double value)= integer(double value, int notUsed);◄ priority: -10, aStack: -1
+   * or: Number(double value)= integer(double value, int notUsed), DecimalPoint;◄ priority: -10, aStack: -1
    */
   _a.Free();
   goto Reduce6;
@@ -419,7 +420,7 @@ State4:
   if (Symbol != ClassifierResult.Digit)
      {
      /* Reduction 10, aStack: -3
-      * Number(double value)= integer(double value, int notUsed), DecimalPoint, integer(double valueOfDigits, int numberOfDigits);◄ Priority: -11, method: NumberWithDigitsRecognized, aStack: -3
+      * Number(double value)= integer(double value, int notUsed), DecimalPoint, integer(double valueOfDigits, int numberOfDigits);◄ priority: -11, method: NumberWithDigitsRecognized, aStack: -3
       */
 
      NumberWithDigitsRecognized(
@@ -455,7 +456,7 @@ State5:
   if (Symbol != ClassifierResult.Digit && Symbol != ClassifierResult.Letter)
      {
      /* Reduction 12
-      * *Startsymbol= Identifier(string identifier);◄ Priority: -1, method: AssignIdentifierToSymbol, aStack: -1
+      * *Startsymbol= Identifier(string identifier);◄ priority: -1, method: AssignIdentifierToSymbol, aStack: -1
       */
 
      AssignIdentifierToSymbol();
@@ -484,11 +485,11 @@ AcceptReduce1:
 
   PassSymbolOn();
 
-  goto EndOfGeneratedCode1;
+  goto EndOfGeneratedCode;
 
-EndOfGeneratedCode1:
+EndOfGeneratedCode:
   ;
-#endregion grammlator generated Fri, 07 Feb 2020 21:38:31 GMT by Grammlator version 0:21 (build Fri, 07 Feb 2020 21:36:30 GMT)
+#endregion grammlator generated Fri, 24 Jul 2020 22:31:58 GMT (grammlator, File version 2020.04.07.1 24.07.2020 22:20:02)
 #pragma warning restore IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
 
             return (LexerResult)(this.Symbol);

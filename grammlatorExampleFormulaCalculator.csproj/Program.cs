@@ -10,7 +10,7 @@ namespace GrammlatorExampleFormulaCalculator
         {
         private static void Main()
             {
-            new ReadAndAnalyzeClass().ReadAndAnalyze();
+            new ReadAndAnalyzeWithDynamicPriorites().ReadAndAnalyze();
             }
         }
     }

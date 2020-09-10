@@ -55,7 +55,7 @@ namespace GrammlatorExampleFormulaCalculator
         /// This constructor initalizes the input and makes the attribute stack available for attribute transfer 
         /// </summary>
         /// <param name="attributeStack">the attribute stack necessary to return attributes of symbol</param>
-        public MyInputClassifier(MultiTypeStack attributeStack) : base(attributeStack)
+        public MyInputClassifier(StackOfMultiTypeElements attributeStack) : base(attributeStack)
             {
             inputLine = "";
             Column = inputLine.Length + 1; // column == inputLine.Length would be interpreted as end of line
