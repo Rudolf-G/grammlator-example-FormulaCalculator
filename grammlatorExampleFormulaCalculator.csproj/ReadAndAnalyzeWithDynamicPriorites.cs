@@ -139,25 +139,28 @@ pi=355/113
       //| ErrorHandlerMethod: "ErrorHandler" // the instruction to be executed in case of errors
       //|
       //| // Definition of the terminal symbols of the parser:
-      //|    AddOp | SubOp | MultOp | DivOp | PotOp
+      //|      AddOp | SubOp | MultOp | DivOp | PowOp
       //|    | RightParentheses | EndOfLine | EqualChar
-      //|    | OtherCharacter(char c) | DecimalPoint | LTChar | GTChar // these input symbols are not used 
-      //|    | LeftParentheses 
+      //|    | LTChar | GTChar // these input symbols are not used 
+      //|    | LeftParentheses | DecimalPoint 
+      //|    | OtherCharacter(char c) 
       //|    | Number(double value) | Identifier (string identifier)
       /* Lines not starting with //| (even empty lines or C# comment lines) are interpreted as C# code associated to grammar rules. */
-      public enum CopyOfMyLexer_LexerResult {
+      enum CopyOfMyLexer_LexerResult {
          // These symbols are passed on from input to output (see Method PassSymbolOn(..)):
-         AddOp, SubOp, MultOp, DivOp, PotOp,
+         AddOp, SubOp, MultOp, DivOp, PowOp,
 
          RightParentheses, EndOfLine, EqualChar,
 
-         OtherCharacter, DecimalPoint, // DecimalPoint outside of (real) number
+         LTChar, GTChar, LeftParentheses,
 
-         LTChar, GTChar,
+         DecimalPoint, // DecimalPoint outside of (real) number
 
-         LeftParentheses,
+         OtherCharacter,  // (char c)
+
          // These symbols are computed by MySymbolInput.cs:
-         Number, Identifier
+         Number, // (double value)
+         Identifier // (string identifier)
       }
 
       /* Such a C# enum declaration (as shown above) may be appended to the definition of the terminal symbols.
@@ -184,7 +187,7 @@ pi=355/113
       //|   * of nonterminal symbols.
       //|   */
       //|
-      //|  "+" = AddOp; "-" = SubOp; "*" = MultOp; "/" = DivOp; "^" = PotOp;
+      //|  "+" = AddOp; "-" = SubOp; "*" = MultOp; "/" = DivOp; "^" = PowOp;
       //|  ")" = RightParentheses; "=" = EqualChar; "(" = LeftParentheses;
       //|
       //| //  The next grammar rule defines the nonterminal symbol MyGrammar.
@@ -254,22 +257,22 @@ pi=355/113
 
       //| unaryOperator(char c)=
       //|     "+"
-      void unaryPlus(out char c) => c = '+';
+      void UnaryPlus(out char c) => c = '+';
       //|   | "-"
-      void unaryMinus(out char c) => c = '-';
+      void UnaryMinus(out char c) => c = '-';
       //|
       //|
       //| binaryOperator(char c)=
       //|      "+"
-      void plusOp(out char c) => c = '+';
+      void PlusOp(out char c) => c = '+';
       //|    | "-"
-      void minusOp(out char c) => c = '-';
+      void MinusOp(out char c) => c = '-';
       //|    | "*"
-      void multOp(out char c) => c = '*';
+      void MultOp(out char c) => c = '*';
       //|    | "/"
-      void divOp(out char c) => c = '/';
+      void DivOp(out char c) => c = '/';
       //|    | "^"
-      void potOp(out char c) => c = '^';
+      void PowOp(out char c) => c = '^';
       //|
       //|
       //|
@@ -277,7 +280,7 @@ pi=355/113
       //| Expression(double value, string expression)= 
       //|      PrimaryExpression(double value, string expression)
       //|    | unaryOperator(char op), PrimaryExpression(double value2, string expression2)
-      private static void unaryExpression(out double value, out string expression, char op, double value2, string expression2)
+      private static void UnaryExpression(out double value, out string expression, char op, double value2, string expression2)
       {
          switch (op)
          {
@@ -299,10 +302,10 @@ pi=355/113
 
       //|    | Expression(double value1, string expression1), OperatorPriority(int p), binaryOperator(char op),
       //|           Expression(double value2, string expression2)  ?? 
-      //| // semantic priority
-      int binaryExpressionPriority(int p, char op) => op == '^' ? p - 1 : p + 1; // '^' is left associative, the other operators are right associative
+      //| // semantic priority:
+      int BinaryExpressionPriority(int p, char op) => op == '^' ? p - 1 : p + 1; // '^' is left associative, the other operators are right associative
       //| // semantic method:
-      private static void binaryExp(out double value, out string expression, char op, double value1, double value2, string expression1, string expression2)
+      private static void BinaryExp(out double value, out string expression, char op, double value1, double value2, string expression1, string expression2)
       {
          switch (op)
          {
@@ -346,7 +349,7 @@ pi=355/113
          case LexerResult.MultOp:
          case LexerResult.DivOp:
             return 20;
-         case LexerResult.PotOp:
+         case LexerResult.PowOp:
             return 30;
          }
          throw new ArgumentException();
@@ -498,7 +501,7 @@ State10:
   Symbol = Lexer.PeekSymbol();
   if (Symbol >= LexerResult.RightParentheses)
      goto Reduce21;
-  Debug.Assert(Symbol <= LexerResult.PotOp);
+  Debug.Assert(Symbol <= LexerResult.PowOp);
   // PrioritySelect3:
   // PriorityBranch3:
   /* Dynamic priority controlled actions */
@@ -532,7 +535,7 @@ State4:
       * binaryOperator(char c)= "+";◄ */
      _a.Allocate();
 
-     plusOp(
+     PlusOp(
         c: out _a.PeekRef(0)._char
         );
 
@@ -546,7 +549,7 @@ State4:
       * binaryOperator(char c)= "-";◄ */
      _a.Allocate();
 
-     minusOp(
+     MinusOp(
         c: out _a.PeekRef(0)._char
         );
 
@@ -560,7 +563,7 @@ State4:
       * binaryOperator(char c)= "*";◄ */
      _a.Allocate();
 
-     multOp(
+     MultOp(
         c: out _a.PeekRef(0)._char
         );
 
@@ -574,26 +577,26 @@ State4:
       * binaryOperator(char c)= "/";◄ */
      _a.Allocate();
 
-     divOp(
+     DivOp(
         c: out _a.PeekRef(0)._char
         );
 
      goto State5;
      }
-  if (Symbol > LexerResult.PotOp)
+  if (Symbol > LexerResult.PowOp)
      {
      if (ErrorHandler(4, StateDescription4, Symbol))
         goto State4;
      goto EndWithError;
      }
-  Debug.Assert(Symbol == LexerResult.PotOp);
+  Debug.Assert(Symbol == LexerResult.PowOp);
   Lexer.AcceptSymbol();
   // Reduce14:
   /* aAdjust: 1
    * binaryOperator(char c)= "^";◄ */
   _a.Allocate();
 
-  potOp(
+  PowOp(
      c: out _a.PeekRef(0)._char
      );
 
@@ -651,13 +654,13 @@ State6:
   Symbol = Lexer.PeekSymbol();
   if (Symbol >= LexerResult.RightParentheses)
      goto Reduce17;
-  Debug.Assert(Symbol <= LexerResult.PotOp);
+  Debug.Assert(Symbol <= LexerResult.PowOp);
   // PrioritySelect2:
   // PriorityBranch2:
   /* Dynamic priority controlled actions */
   switch(Methods.IndexOfMaximum(
 
-     binaryExpressionPriority(
+     BinaryExpressionPriority(
         p: _a.PeekRef(-3)._int,
         op: _a.PeekRef(-2)._char
         ),
@@ -678,7 +681,7 @@ AcceptReduce1:
    * unaryOperator(char c)= "+";◄ */
   _a.Allocate();
 
-  unaryPlus(
+  UnaryPlus(
      c: out _a.PeekRef(0)._char
      );
 
@@ -731,7 +734,7 @@ Reduce7:
    * Expression(double value, string expression)= unaryOperator(char op), PrimaryExpression(double value2, string expression2);◄ */
   _s.Pop();
 
-  unaryExpression(
+  UnaryExpression(
      value: out _a.PeekRef(-2)._double,
      expression: out _a.PeekRef(-1)._string,
      op: _a.PeekClear(-2)._char,
@@ -759,7 +762,7 @@ State12:
        "Expression(double value, string expression)= Expression(double value1, string expression1), ►OperatorPriority(int p), binaryOperator(char op), Expression(double value2, string expression2);\r\n"
      + "PrimaryExpression(double value, string expression)= \"(\", Expression(double value, string expression), ►\")\";";
   Symbol = Lexer.PeekSymbol();
-  if (Symbol <= LexerResult.PotOp)
+  if (Symbol <= LexerResult.PowOp)
      goto Reduce9;
   if (Symbol > LexerResult.RightParentheses)
      {
@@ -802,7 +805,7 @@ State3:
   Symbol = Lexer.PeekSymbol();
   if (Symbol >= LexerResult.RightParentheses)
      goto Reduce8;
-  Debug.Assert(Symbol <= LexerResult.PotOp);
+  Debug.Assert(Symbol <= LexerResult.PowOp);
   // PrioritySelect1:
   // PriorityBranch1:
   /* Dynamic priority controlled actions */
@@ -876,7 +879,7 @@ AcceptReduce2:
    * unaryOperator(char c)= "-";◄ */
   _a.Allocate();
 
-  unaryMinus(
+  UnaryMinus(
      c: out _a.PeekRef(0)._char
      );
 
@@ -887,7 +890,7 @@ Reduce17:
    * Expression(double value, string expression)= Expression(double value1, string expression1), OperatorPriority(int p), binaryOperator(char op), Expression(double value2, string expression2);◄ */
   _s.Pop();
 
-  binaryExp(
+  BinaryExp(
      value: out _a.PeekRef(-5)._double,
      expression: out _a.PeekRef(-4)._string,
      op: _a.PeekRef(-2)._char,
