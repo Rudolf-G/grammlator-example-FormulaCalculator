@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 
 using GrammlatorRuntime;
 
@@ -9,17 +10,11 @@ namespace GrammlatorExampleFormulaCalculator {
    /// The order of these identifiers is relevant, because they are used for comparisions (== but also &lt; , &lt;=, >=, >)
    /// </summary>
    public enum ClassifierResult {
-      AddOp, SubOp, MultOp, DivOp, PowOp,
-
-      RightParentheses, EndOfLine, EqualChar,
-
-      LTChar, GTChar, LeftParentheses,
+      AddOp, SubOp, MultOp, DivOp, PowOp, OtherCharacter, // all with attribute (char c) 
+      RightParentheses, EndOfLine, EqualChar, LeftParentheses,
 
       DecimalPoint,
-
-      OtherCharacter /* (char c) */,
-
-      Digit /* (char c) */, Letter /* (char c) */
+      Digit, Letter // both with attribute (char c)
    };
 
    public static class ClassifierResultExtensions {
@@ -27,8 +22,8 @@ namespace GrammlatorExampleFormulaCalculator {
       /// Convert the enum value to a one character string if appropriate else to the name of the value
       /// </summary>
       /// <param name="c">The enum value</param>
-      /// <returns>The string to dispaly the enum value</returns>
-      public static string MyToString(this ClassifierResult c)
+      /// <returns>The string to display the enum value</returns>
+      public static char MyToChar(this ClassifierResult c)
       {
          // Assign a character to each value of ClassifierResult or assign 'x'
          const string MyDisplay = "+-*/^)x=x.<>(xx";
@@ -36,10 +31,10 @@ namespace GrammlatorExampleFormulaCalculator {
 
          if (result == 'x')
          {
-            return c.ToString();
+            return c.ToString()[0];
          }
 
-         return result.ToString();
+         return result;
       }
    }
 
@@ -54,14 +49,14 @@ namespace GrammlatorExampleFormulaCalculator {
       /// This constructor initalizes the input and makes the attribute stack available for attribute transfer 
       /// </summary>
       /// <param name="attributeStack">the attribute stack necessary to return attributes of symbol</param>
-      public MyInputClassifier(StackOfMultiTypeElements attributeStack) : base(attributeStack)
+      public MyInputClassifier(string line, StackOfMultiTypeElements attributeStack) : base(attributeStack)
       {
-         inputLine = "";
-         Column = inputLine.Length + 1; // column == inputLine.Length would be interpreted as end of line
+         InputLine = line;
+         Column = 0;
          Accepted = true; // there is no symbol to accept
       }
 
-      private string inputLine;
+      private string InputLine;
 
       /// <summary>
       /// inputLine[column] is the next not yet accepted character, except special handling of end of line.
@@ -77,17 +72,19 @@ namespace GrammlatorExampleFormulaCalculator {
       /// <returns>The string of skipped characters (without eol). Maybe the empty string.</returns>
       public string GetRemainigCharactersOfLine()
       {
-         string result = "";
-         if (!Accepted)
-         {
-            if (Column < inputLine.Length)
-               result = InputCharacter.ToString();
-            AcceptSymbol();
-         }
+         string result;
+         //if (!Accepted)
+         //{
+         //   if (Column < InputLine.Length)
+         //      result = InputCharacter.ToString();
+         //   AcceptSymbol();
+         //}
 
-         if (Column < inputLine.Length)
-            result += inputLine.Substring(Column);
-         Column = inputLine.Length + 1;
+         if (Column < InputLine.Length)
+            result = InputLine.Substring(Column);
+         else
+            result = string.Empty;
+         Column = InputLine.Length + 1;
          return result;
       }
 
@@ -97,6 +94,7 @@ namespace GrammlatorExampleFormulaCalculator {
       /// </summary>
       public override void AcceptSymbol()
       {
+         Debug.Assert(!Accepted);
          if (Accepted)
             return;
          Accepted = true;
@@ -115,21 +113,19 @@ namespace GrammlatorExampleFormulaCalculator {
          if (!Accepted)
             return Symbol;
          Accepted = false;
-         if (Column > inputLine.Length)
-         { // column == inputLine.Length: see below
-            inputLine = Console.ReadLine();
-            Column = 0;
-         }
+         if (Column > InputLine.Length)
+            throw new EndOfStreamException();
 
-         if (Column == inputLine.Length)
+         if (Column == InputLine.Length)
          {
             InputCharacter = '\n'; // end of line is interpreted as Eol character
          }
          else
          {
-            InputCharacter = inputLine[Column];
+            InputCharacter = InputLine[Column];
          }
 
+         // Map input character to ClassifierResult
          if (char.IsDigit(InputCharacter))
          {
             Symbol = ClassifierResult.Digit;
@@ -157,23 +153,17 @@ namespace GrammlatorExampleFormulaCalculator {
             case '^':
                Symbol = ClassifierResult.PowOp;
                break;
-            case '(':
-               Symbol = ClassifierResult.LeftParentheses;
-               break;
             case ')':
                Symbol = ClassifierResult.RightParentheses;
+               break;
+            case '\n':
+               Symbol = ClassifierResult.EndOfLine;
                break;
             case '=':
                Symbol = ClassifierResult.EqualChar;
                break;
-            case '<':
-               Symbol = ClassifierResult.LTChar;
-               break;
-            case '>':
-               Symbol = ClassifierResult.GTChar;
-               break;
-            case '\n':
-               Symbol = ClassifierResult.EndOfLine;
+            case '(':
+               Symbol = ClassifierResult.LeftParentheses;
                break;
             case ',':
             case '.':
@@ -186,9 +176,10 @@ namespace GrammlatorExampleFormulaCalculator {
          }
 
          // Store character as attribute in AttributesOfSymbol
-         if (Symbol == ClassifierResult.Digit
+         if (
+                Symbol <= ClassifierResult.OtherCharacter
+             || Symbol == ClassifierResult.Digit
              || Symbol == ClassifierResult.Letter
-             || Symbol == ClassifierResult.OtherCharacter
              )
          {
             AttributesOfSymbol.Allocate(1);
