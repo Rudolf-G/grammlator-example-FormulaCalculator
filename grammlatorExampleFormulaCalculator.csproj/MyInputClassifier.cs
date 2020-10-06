@@ -10,33 +10,12 @@ namespace GrammlatorExampleFormulaCalculator {
    /// The order of these identifiers is relevant, because they are used for comparisions (== but also &lt; , &lt;=, >=, >)
    /// </summary>
    public enum ClassifierResult {
-      AddOp, SubOp, MultOp, DivOp, PowOp, OtherCharacter, // all with attribute (char c) 
-      RightParentheses, EndOfLine, EqualChar, LeftParentheses,
+      AddOp = 1, SubOp = 2, MultOp = 4, DivOp = 8, PowOp = 16, OtherCharacter = 32, // all with attribute (char c) 
+      RightParentheses = 64, EndOfLine = 128, EqualChar = 256, LeftParentheses = 512,
 
-      DecimalPoint,
-      Digit, Letter // both with attribute (char c)
+      DecimalPoint = 1024,
+      Digit = 2048, Letter = 4096 // both with attribute (char c)
    };
-
-   public static class ClassifierResultExtensions {
-      /// <summary>
-      /// Convert the enum value to a one character string if appropriate else to the name of the value
-      /// </summary>
-      /// <param name="c">The enum value</param>
-      /// <returns>The string to display the enum value</returns>
-      public static char MyToChar(this ClassifierResult c)
-      {
-         // Assign a character to each value of ClassifierResult or assign 'x'
-         const string MyDisplay = "+-*/^)x=x.<>(xx";
-         char result = MyDisplay[(int)c];
-
-         if (result == 'x')
-         {
-            return c.ToString()[0];
-         }
-
-         return result;
-      }
-   }
 
    /// <summary>
    /// Manually written class, which reads lines from console and provides
@@ -56,11 +35,11 @@ namespace GrammlatorExampleFormulaCalculator {
          Accepted = true; // there is no symbol to accept
       }
 
-      private string InputLine;
+      private readonly string InputLine;
 
       /// <summary>
       /// inputLine[column] is the next not yet accepted character, except special handling of end of line.
-      /// (column == inputLine.Length) is interpreted as end of line symbol. (column == inputLine.Length+1) after eol is accepted.
+      /// (column == inputLine.Length) is interpreted as end of line symbol.
       /// </summary>
       public int Column {
          get; private set;
@@ -70,7 +49,7 @@ namespace GrammlatorExampleFormulaCalculator {
       /// This method positions the input behind the end of the actual input line and returns the string of skipped characters.
       /// </summary>
       /// <returns>The string of skipped characters (without eol). Maybe the empty string.</returns>
-      public string GetRemainigCharactersOfLine()
+      public string GetAndSkipRemainigCharactersOfLine(int fromIndex)
       {
          string result;
          //if (!Accepted)
@@ -80,8 +59,8 @@ namespace GrammlatorExampleFormulaCalculator {
          //   AcceptSymbol();
          //}
 
-         if (Column < InputLine.Length)
-            result = InputLine.Substring(Column);
+         if (fromIndex < InputLine.Length)
+            result = InputLine.Substring(fromIndex);
          else
             result = string.Empty;
          Column = InputLine.Length + 1;

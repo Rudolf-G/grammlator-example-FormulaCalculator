@@ -2,6 +2,7 @@ using GrammlatorRuntime;
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 
 namespace GrammlatorExampleFormulaCalculator {
@@ -14,14 +15,7 @@ namespace GrammlatorExampleFormulaCalculator {
    public class ReadAndAnalyzeWithStaticPriorities : GrammlatorApplication {
 
       /// <summary>
-      /// The instance <see cref="InputClassifier"/> is used to read line by line,
-      /// to assign each character (one after the other) to a class of symbols and
-      /// to deliver it to <see cref="Lexer"/>
-      /// </summary>
-      private readonly MyInputClassifier InputClassifier;
-
-      /// <summary>
-      /// The instance <see cref="Lexer"/> is used to get characters from the <see cref="InputClassifier"/>
+      /// The instance <see cref="Lexer"/> is used to transform the input line into a stream of symbols, 
       /// and to recognize numbers, identifiers and characters used by <see cref="ReadAndAnalyze"/> 
       /// </summary>
       private readonly MyLexer Lexer;
@@ -38,8 +32,62 @@ namespace GrammlatorExampleFormulaCalculator {
              _s  // the state stack is defined by the base class GrammlatorApplication
              );
       }
+      #region grammar
+      //| /* Lines starting with //| contain grammar rules, which are evaluated by grammlator.
+      //|
+      //|    This is the 3rd line of ReadAndAnalyze interpreted by grammlator.
+      //|    Because the grammar may contain comments alike comments of C#
+      //|    grammlator interprets these lines as comment. */
+      //|
+      //| /* The following optional grammlator compiler settings define special
+      //|     constants and strings which are used by grammlator to generate code */
+      //|
+      //| TerminalSymbolEnum: "LexerResult" // a prefix to be added to terminal symbol values
+      //| SymbolNameOrFunctionCall: "Symbol" // the name of the variable used in the AssignSymbol instruction
+      //| SymbolAssignInstruction: "Symbol = Lexer.PeekSymbol();" // the instruction to fetch a symbol
+      //| SymbolAcceptInstruction: "Lexer.AcceptSymbol();" // the instruction to accept a symbol
+      //| StateDescriptionPrefix: "StateDescription" // the name of the variable which is the StateDescription assigned to
+      //| ErrorHandlerMethod: "ErrorHandler" // the method to be called in the generated code in case of errors
+      //| IfToSwitchBorder: "5"; // grammlator will generate a switch instruction instead of a sequence of 5 or more if instructions
+      //| IsMethod: "_IS";
+      //| CompareToFlagTestBorder: 2;
+      //|
+      //| // Definition of the terminal symbols of the parser:
+      //|      AddOp(char c) | SubOp(char c) | MultOp(char c) | DivOp(char c) 
+      //|    | PowOp(char c) | OtherCharacter(char c)
+      //|    | RightParentheses | EndOfLine | EqualChar| LeftParentheses
+      //|    | Number(double value) | Identifier (string identifier)
+      public enum LexerResultCopy1 {
+         [Description("AddOp(char c)")]
+         AddOp = 1,
+         [Description("SubOp(char c)")]
+         SubOp = 2,
+         [Description("MultOp(char c)")]
+         MultOp = 4,
+         [Description("DivOp(char c)")]
+         DivOp = 8,
+         [Description("PowOp(char c)")]
+         PowOp = 16,
+         [Description("OtherCharacter(char c)")]
+         OtherCharacter = 32,
+         [Description("RightParentheses()")]
+         RightParentheses = 64,
+         [Description("EndOfLine()")]
+         EndOfLine = 128,
+         [Description("EqualChar()")]
+         EqualChar = 256,
+         [Description("LeftParentheses()")]
+         LeftParentheses = 512,
+         // These symbols are computed by MySymbolInput.cs:
+         [Description("Number(double value)")]
+         Number = 1024,
+         [Description("Identifier(string identifier)")]
+         Identifier = 2048
+      }
 
-      private void ReadAndAnalyzeExpression(Dictionary<string, double> DefinedNames)
+      #endregion
+
+      public void ReadAndAnalyzeExpression(Dictionary<string, double> DefinedNames)
       {
 
          /// <summary>
@@ -55,35 +103,14 @@ namespace GrammlatorExampleFormulaCalculator {
             // The symbol is given as parameter to avoid access to internals of Lexer
             Debug.Assert(symbol == Lexer.Symbol);
             Console.WriteLine(
-                $"Parser error: illegal symbol \"{symbol.MyToString()}\" in parser state {numberOfState}:");
+                $"Parser error: illegal symbol \"{symbol.LexerResultToString()}\" in parser state {numberOfState}:");
             Console.WriteLine(stateDescription, symbol);
             Console.WriteLine();
             return false; // return to generated code, which will set the stacks to correct states and then return
          }
 
          #region grammar
-         //| /* Lines starting with //| contain grammar rules, which are evaluated by grammlator.
-         //|
-         //|    This is the 3rd line of ReadAndAnalyze interpreted by grammlator.
-         //|    Because the grammar may contain comments alike comments of C#
-         //|    grammlator interprets these lines as comment. */
-         //|
-         //| /* The following optional grammlator compiler settings define special
-         //|     constants and strings which are used by grammlator to generate code */
-         //|
-         //| IfToSwitchBorder: "5"; // grammlator will generate a switch instruction instead of a sequence of 5 or more if instructions
-         //| Symbol: "Symbol" // the name of the variable used in the AssignSymbol instruction
-         //| AssignSymbol: "Symbol = Lexer.PeekSymbol();" // the instruction to fetch a symbol
-         //| AcceptSymbol: "Lexer.AcceptSymbol();" // the instruction to accept a symbol
-         //| TerminalSymbolEnum: "LexerResult" // a prefix to be added to terminal symbol values
-         //| StateDescription: "StateDescription" // the name of the variable which is the StateDescription assigned to
-         //| ErrorHandlerMethod: "ErrorHandler" // the method to be called in the generated code in case of errors
-         //|
-         //| // Definition of the terminal symbols of the parser:
-         //|      AddOp(char c) | SubOp(char c) | MultOp(char c) | DivOp(char c) 
-         //|    | PowOp(char c) | OtherCharacter(char c)
-         //|    | RightParentheses | EndOfLine | EqualChar| LeftParentheses
-         //|    | Number(double value) | Identifier (string identifier);
+
          //|
          //| /* The following first grammar rule defines the special startsymbol "*"   */
          //| *= MyGrammar; // , EndOfLine;
@@ -243,20 +270,18 @@ namespace GrammlatorExampleFormulaCalculator {
 #pragma warning disable IDE0059 // Der Wert, der dem Symbol zugeordnet ist, wird niemals verwendet.
 
          /***** The content of the region "grammlator generated" is (replaced and) inserted by grammlator *****/
-#region grammlator generated Sat, 12 Sep 2020 21:09:48 GMT (grammlator, File version 2020.07.28.0 12.09.2020 13:34:12)
-  Int32 StateStackInitialCount = _s.Count;
-  Int32 AttributeStackInitialCount = _a.Count;
+#region grammlator generated 5 Okt 2020 (grammlator file version/date 2020.10.05.0/5 Okt 2020)
+  Int32 _StateStackInitialCount = _s.Count;
+  Int32 _AttributeStackInitialCount = _a.Count;
+  const LexerResult _fMultOp = LexerResult.MultOp;
+  const LexerResult _fDivOp = LexerResult.DivOp;
+  Boolean _IS(LexerResult flags) => ((Symbol) & flags) != 0;
+
 State1:
   const String StateDescription1 =
        "*Startsymbol= ►MyGrammar;";
   _s.Push(0);
   Symbol = Lexer.PeekSymbol();
-  if (Symbol <= LexerResult.AddOp)
-     goto AcceptState23;
-  if (Symbol <= LexerResult.SubOp)
-     goto AcceptState22;
-  if (Symbol == LexerResult.LeftParentheses)
-     goto AcceptState20;
   if (Symbol == LexerResult.Number)
      {
      Lexer.AcceptSymbol();
@@ -272,7 +297,40 @@ State1:
 
      goto State2;
      }
-  if (Symbol < LexerResult.Identifier)
+  if (Symbol >= LexerResult.Identifier)
+     {
+     Lexer.AcceptSymbol();
+     // State16:
+     /* MyGrammar= Identifier(string identifier), ►Priority90, "=", Expression(double result, string infixNotation);
+      * PrimaryExpression(double value, string infixNotation)= Identifier(string identifier)●; */
+     Symbol = Lexer.PeekSymbol();
+     if (Symbol != LexerResult.EqualChar)
+        // Reduce19:
+        {
+        /* aAdjust: 1
+         * PrimaryExpression(double value, string infixNotation)= Identifier(string identifier);◄ */
+        _a.Allocate();
+
+        IdentifierInExpression(
+           value: out _a.PeekRef(-1)._double,
+           infixNotation: out _a.PeekRef(0)._string,
+           identifier: _a.PeekClear(-1)._string
+           );
+
+        goto State2;
+        }
+     Debug.Assert(Symbol == LexerResult.EqualChar);
+     // State17:
+     /* MyGrammar= Identifier(string identifier), Priority90, ►"=", Expression(double result, string infixNotation); */
+     Debug.Assert(Symbol == LexerResult.EqualChar);
+     Lexer.AcceptSymbol();
+     goto State18;
+     }
+  if (Symbol <= LexerResult.AddOp)
+     goto AcceptState23;
+  if (Symbol <= LexerResult.SubOp)
+     goto AcceptState22;
+  if (Symbol < LexerResult.LeftParentheses)
      {
      if (ErrorHandler(1, StateDescription1, Symbol))
         {
@@ -281,15 +339,35 @@ State1:
         };
      goto EndWithError;
      }
-  Debug.Assert(Symbol >= LexerResult.Identifier);
+  Debug.Assert(Symbol == LexerResult.LeftParentheses);
+AcceptState20:
   Lexer.AcceptSymbol();
-  // State16:
-  /* MyGrammar= Identifier(string identifier), ►Priority90, "=", Expression(double result, string infixNotation);
-   * PrimaryExpression(double value, string infixNotation)= Identifier(string identifier)●; */
+State20:
+  const String StateDescription20 =
+       "PrimaryExpression(double value, string infixNotation)= \"(\", ►Expression(double value, string infixNotation), \")\";";
+  _s.Push(7);
   Symbol = Lexer.PeekSymbol();
-  if (Symbol != LexerResult.EqualChar)
-     // Reduce19:
+  if (Symbol == LexerResult.LeftParentheses)
+     goto AcceptState20;
+  if (Symbol == LexerResult.Number)
      {
+     Lexer.AcceptSymbol();
+     // Reduce23:
+     /* aAdjust: 1
+      * PrimaryExpression(double value, string infixNotation)= Number(double value);◄ */
+     _a.Allocate();
+
+     Primary(
+        value: _a.PeekRef(-1)._double,
+        infixNotation: out _a.PeekRef(0)._string
+        );
+
+     goto State21;
+     }
+  if (Symbol >= LexerResult.Identifier)
+     {
+     Lexer.AcceptSymbol();
+     // Reduce24:
      /* aAdjust: 1
       * PrimaryExpression(double value, string infixNotation)= Identifier(string identifier);◄ */
      _a.Allocate();
@@ -300,36 +378,33 @@ State1:
         identifier: _a.PeekClear(-1)._string
         );
 
-     goto State2;
+     goto State21;
      }
-  Debug.Assert(Symbol == LexerResult.EqualChar);
-State17:
-  const String StateDescription17 =
-       "MyGrammar= Identifier(string identifier), Priority90, ►\"=\", Expression(double result, string infixNotation);";
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol != LexerResult.EqualChar)
-     {
-     if (ErrorHandler(17, StateDescription17, Symbol))
-        goto State17;
-     goto EndWithError;
-     }
-  Debug.Assert(Symbol == LexerResult.EqualChar);
-  Lexer.AcceptSymbol();
-State18:
-  const String StateDescription18 =
-       "MyGrammar= Identifier(string identifier), Priority90, \"=\", ►Expression(double result, string infixNotation);";
-  _s.Push(6);
-  Symbol = Lexer.PeekSymbol();
   if (Symbol <= LexerResult.AddOp)
      goto AcceptState23;
-  if (Symbol <= LexerResult.SubOp)
-     goto AcceptState22;
+  if (Symbol > LexerResult.SubOp)
+     {
+     if (ErrorHandler(20, StateDescription20, Symbol))
+        {
+        _s.Pop();
+        goto State20;
+        };
+     goto EndWithError;
+     }
+  Debug.Assert(Symbol == LexerResult.SubOp);
+AcceptState22:
+  Lexer.AcceptSymbol();
+State22:
+  const String StateDescription22 =
+       "Expression(double value, string infixNotation)= \"-\"(char c), ►PrimaryExpression(double value2, string infixNotation2);";
+  _s.Push(8);
+  Symbol = Lexer.PeekSymbol();
   if (Symbol == LexerResult.LeftParentheses)
      goto AcceptState20;
   if (Symbol == LexerResult.Number)
      {
      Lexer.AcceptSymbol();
-     // Reduce20:
+     // Reduce26:
      /* aAdjust: 1
       * PrimaryExpression(double value, string infixNotation)= Number(double value);◄ */
      _a.Allocate();
@@ -339,20 +414,20 @@ State18:
         infixNotation: out _a.PeekRef(0)._string
         );
 
-     goto State19;
+     goto Reduce28;
      }
   if (Symbol < LexerResult.Identifier)
      {
-     if (ErrorHandler(18, StateDescription18, Symbol))
+     if (ErrorHandler(22, StateDescription22, Symbol))
         {
         _s.Pop();
-        goto State18;
+        goto State22;
         };
      goto EndWithError;
      }
   Debug.Assert(Symbol >= LexerResult.Identifier);
   Lexer.AcceptSymbol();
-  // Reduce21:
+  // Reduce27:
   /* aAdjust: 1
    * PrimaryExpression(double value, string infixNotation)= Identifier(string identifier);◄ */
   _a.Allocate();
@@ -363,8 +438,45 @@ State18:
      identifier: _a.PeekClear(-1)._string
      );
 
-State19:
-  /* MyGrammar= Identifier(string identifier), Priority90, "=", Expression(double result, string infixNotation)●;
+Reduce28:
+  /* sAdjust: -1, aAdjust: -1
+   * Expression(double value, string infixNotation)= "-"(char c), PrimaryExpression(double value2, string infixNotation2);◄ */
+  _s.Pop();
+
+  UnaryMinus(
+     value: out _a.PeekRefClear(-2)._double,
+     infixNotation: out _a.PeekRef(-1)._string,
+     value2: _a.PeekClear(-1)._double,
+     infixNotation2: _a.PeekRef(0)._string
+     );
+
+  _a.Remove();
+Branch1:
+  switch (_s.Peek())
+  {
+  case 1:
+     goto State5;
+  case 2:
+     goto State8;
+  case 3:
+     goto State10;
+  case 4:
+     goto State13;
+  case 5:
+     goto State15;
+  case 6:
+     goto State19;
+  case 7:
+     goto State21;
+  case 8:
+     goto Reduce28;
+  case 9:
+     goto Reduce31;
+  /*case 0:
+  default: break; */
+  }
+State2:
+  /* MyGrammar= Expression(double result, string infixNotation)●;
    * Expression(double value, string infixNotation)= Expression(double multiplicand, string infixNotation1), ►Priority20, "*"(char c), Expression(double multiplier, string infixNotation2);
    * Expression(double value, string infixNotation)= Expression(double dividend, string infixNotation1), ►Priority20, "/"(char c), Expression(double divisor, string infixNotation2);
    * Expression(double value, string infixNotation)= Expression(double leftAddend, string infixNotation1), ►Priority10, "+"(char c), Expression(double rightAddend, string infixNotation2);
@@ -372,42 +484,32 @@ State19:
    * Expression(double value, string infixNotation)= Expression(double b, string infixNotation1), ►Priority30, "^"(char c), Expression(double exponent, string infixNotation2); */
   Symbol = Lexer.PeekSymbol();
   if (Symbol >= LexerResult.OtherCharacter)
-     // Reduce22:
+     // Reduce3:
      {
-     /* sAdjust: -1, aAdjust: -3
-      * MyGrammar= Identifier(string identifier), Priority90, "=", Expression(double result, string infixNotation);◄
+     /* aAdjust: -2
+      * MyGrammar= Expression(double result, string infixNotation);◄
       * then: *Startsymbol= MyGrammar;◄ */
-     _s.Pop();
 
-     AssignValueToIdentifier(
-        identifier: _a.PeekRef(-2)._string,
+     WriteResult(
         result: _a.PeekRef(-1)._double,
         infixNotation: _a.PeekRef(0)._string
         );
 
-     _a.Free(3);
+     _a.Remove(2);
      goto ApplyStartsymbolDefinition1;
      }
   if (Symbol <= LexerResult.SubOp)
      goto State6;
   if (Symbol >= LexerResult.PowOp)
      goto State3;
-  Debug.Assert(Symbol == LexerResult.MultOp || Symbol == LexerResult.DivOp);
+  Debug.Assert(_IS(_fMultOp | _fDivOp));
 State11:
-  const String StateDescription11 =
-       "Expression(double value, string infixNotation)= Expression(double multiplicand, string infixNotation1), Priority20, ►\"*\"(char c), Expression(double multiplier, string infixNotation2);\r\n"
-     + "Expression(double value, string infixNotation)= Expression(double dividend, string infixNotation1), Priority20, ►\"/\"(char c), Expression(double divisor, string infixNotation2);";
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol == LexerResult.MultOp)
+  /* Expression(double value, string infixNotation)= Expression(double multiplicand, string infixNotation1), Priority20, ►"*"(char c), Expression(double multiplier, string infixNotation2);
+   * Expression(double value, string infixNotation)= Expression(double dividend, string infixNotation1), Priority20, ►"/"(char c), Expression(double divisor, string infixNotation2); */
+  if (Symbol <= LexerResult.MultOp)
      {
      Lexer.AcceptSymbol();
      goto State14;
-     }
-  if (Symbol != LexerResult.DivOp)
-     {
-     if (ErrorHandler(11, StateDescription11, Symbol))
-        goto State11;
-     goto EndWithError;
      }
   Debug.Assert(Symbol == LexerResult.DivOp);
   Lexer.AcceptSymbol();
@@ -416,9 +518,7 @@ State12:
        "Expression(double value, string infixNotation)= Expression(double dividend, string infixNotation1), Priority20, \"/\"(char c), ►Expression(double divisor, string infixNotation2);";
   _s.Push(4);
   Symbol = Lexer.PeekSymbol();
-  if (Symbol <= LexerResult.AddOp)
-     goto AcceptState23;
-  if (Symbol <= LexerResult.SubOp)
+  if (Symbol == LexerResult.SubOp)
      goto AcceptState22;
   if (Symbol == LexerResult.LeftParentheses)
      goto AcceptState20;
@@ -437,7 +537,23 @@ State12:
 
      goto State13;
      }
-  if (Symbol < LexerResult.Identifier)
+  if (Symbol >= LexerResult.Identifier)
+     {
+     Lexer.AcceptSymbol();
+     // Reduce14:
+     /* aAdjust: 1
+      * PrimaryExpression(double value, string infixNotation)= Identifier(string identifier);◄ */
+     _a.Allocate();
+
+     IdentifierInExpression(
+        value: out _a.PeekRef(-1)._double,
+        infixNotation: out _a.PeekRef(0)._string,
+        identifier: _a.PeekClear(-1)._string
+        );
+
+     goto State13;
+     }
+  if (Symbol > LexerResult.AddOp)
      {
      if (ErrorHandler(12, StateDescription12, Symbol))
         {
@@ -446,9 +562,43 @@ State12:
         };
      goto EndWithError;
      }
+  Debug.Assert(Symbol <= LexerResult.AddOp);
+AcceptState23:
+  Lexer.AcceptSymbol();
+State23:
+  const String StateDescription23 =
+       "Expression(double value, string infixNotation)= \"+\"(char c), ►PrimaryExpression(double value2, string infixNotation2);";
+  _s.Push(9);
+  Symbol = Lexer.PeekSymbol();
+  if (Symbol == LexerResult.LeftParentheses)
+     goto AcceptState20;
+  if (Symbol == LexerResult.Number)
+     {
+     Lexer.AcceptSymbol();
+     // Reduce29:
+     /* aAdjust: 1
+      * PrimaryExpression(double value, string infixNotation)= Number(double value);◄ */
+     _a.Allocate();
+
+     Primary(
+        value: _a.PeekRef(-1)._double,
+        infixNotation: out _a.PeekRef(0)._string
+        );
+
+     goto Reduce31;
+     }
+  if (Symbol < LexerResult.Identifier)
+     {
+     if (ErrorHandler(23, StateDescription23, Symbol))
+        {
+        _s.Pop();
+        goto State23;
+        };
+     goto EndWithError;
+     }
   Debug.Assert(Symbol >= LexerResult.Identifier);
   Lexer.AcceptSymbol();
-  // Reduce14:
+  // Reduce30:
   /* aAdjust: 1
    * PrimaryExpression(double value, string infixNotation)= Identifier(string identifier);◄ */
   _a.Allocate();
@@ -459,44 +609,23 @@ State12:
      identifier: _a.PeekClear(-1)._string
      );
 
-State13:
-  /* Expression(double value, string infixNotation)= Expression(double multiplicand, string infixNotation1), ►Priority20, "*"(char c), Expression(double multiplier, string infixNotation2);
-   * Expression(double value, string infixNotation)= Expression(double dividend, string infixNotation1), ►Priority20, "/"(char c), Expression(double divisor, string infixNotation2);
-   * Expression(double value, string infixNotation)= Expression(double dividend, string infixNotation1), Priority20, "/"(char c), Expression(double divisor, string infixNotation2)●;
-   * Expression(double value, string infixNotation)= Expression(double leftAddend, string infixNotation1), ►Priority10, "+"(char c), Expression(double rightAddend, string infixNotation2);
-   * Expression(double value, string infixNotation)= Expression(double minuend, string infixNotation1), ►Priority10, "-"(char c), Expression(double subtrahend, string infixNotation2);
-   * Expression(double value, string infixNotation)= Expression(double b, string infixNotation1), ►Priority30, "^"(char c), Expression(double exponent, string infixNotation2); */
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol != LexerResult.PowOp)
-     // Reduce15:
-     {
-     /* sAdjust: -1, aAdjust: -3
-      * Expression(double value, string infixNotation)= Expression(double dividend, string infixNotation1), Priority20, "/"(char c), Expression(double divisor, string infixNotation2);◄ */
-     _s.Pop();
+Reduce31:
+  /* sAdjust: -1, aAdjust: -1
+   * Expression(double value, string infixNotation)= "+"(char c), PrimaryExpression(double value2, string infixNotation2);◄ */
+  _s.Pop();
 
-     Divide(
-        value: out _a.PeekRef(-4)._double,
-        infixNotation: out _a.PeekRef(-3)._string,
-        dividend: _a.PeekRef(-4)._double,
-        divisor: _a.PeekRef(-1)._double,
-        infixNotation1: _a.PeekRef(-3)._string,
-        infixNotation2: _a.PeekRef(0)._string
-        );
+  UnaryPlus(
+     value: out _a.PeekRefClear(-2)._double,
+     infixNotation: out _a.PeekRef(-1)._string,
+     value2: _a.PeekClear(-1)._double,
+     infixNotation2: _a.PeekRef(0)._string
+     );
 
-     _a.Free(3);
-     goto Branch1;
-     }
-  Debug.Assert(Symbol == LexerResult.PowOp);
+  _a.Remove();
+  goto Branch1;
+
 State3:
-  const String StateDescription3 =
-       "Expression(double value, string infixNotation)= Expression(double b, string infixNotation1), Priority30, ►\"^\"(char c), Expression(double exponent, string infixNotation2);";
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol != LexerResult.PowOp)
-     {
-     if (ErrorHandler(3, StateDescription3, Symbol))
-        goto State3;
-     goto EndWithError;
-     }
+  /* Expression(double value, string infixNotation)= Expression(double b, string infixNotation1), Priority30, ►"^"(char c), Expression(double exponent, string infixNotation2); */
   Debug.Assert(Symbol == LexerResult.PowOp);
   Lexer.AcceptSymbol();
 State4:
@@ -571,94 +700,19 @@ State5:
         infixNotation2: _a.PeekRef(0)._string
         );
 
-     _a.Free(3);
+     _a.Remove(3);
      goto Branch1;
      }
   Debug.Assert(Symbol == LexerResult.PowOp);
   goto State3;
 
-Reduce28:
-  /* sAdjust: -1, aAdjust: -1
-   * Expression(double value, string infixNotation)= "-"(char c), PrimaryExpression(double value2, string infixNotation2);◄ */
-  _s.Pop();
-
-  UnaryMinus(
-     value: out _a.PeekRefClear(-2)._double,
-     infixNotation: out _a.PeekRef(-1)._string,
-     value2: _a.PeekClear(-1)._double,
-     infixNotation2: _a.PeekRef(0)._string
-     );
-
-  _a.Free();
-Branch1:
-  switch (_s.Peek())
-  {
-  case 1:
-     goto State5;
-  case 2:
-     goto State8;
-  case 3:
-     goto State10;
-  case 4:
-     goto State13;
-  case 5:
-     goto State15;
-  case 6:
-     goto State19;
-  case 7:
-     goto State21;
-  case 8:
-     goto Reduce28;
-  case 9:
-     goto Reduce31;
-  /*case 0:
-  default: break; */
-  }
-State2:
-  /* MyGrammar= Expression(double result, string infixNotation)●;
-   * Expression(double value, string infixNotation)= Expression(double multiplicand, string infixNotation1), ►Priority20, "*"(char c), Expression(double multiplier, string infixNotation2);
-   * Expression(double value, string infixNotation)= Expression(double dividend, string infixNotation1), ►Priority20, "/"(char c), Expression(double divisor, string infixNotation2);
-   * Expression(double value, string infixNotation)= Expression(double leftAddend, string infixNotation1), ►Priority10, "+"(char c), Expression(double rightAddend, string infixNotation2);
-   * Expression(double value, string infixNotation)= Expression(double minuend, string infixNotation1), ►Priority10, "-"(char c), Expression(double subtrahend, string infixNotation2);
-   * Expression(double value, string infixNotation)= Expression(double b, string infixNotation1), ►Priority30, "^"(char c), Expression(double exponent, string infixNotation2); */
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol >= LexerResult.OtherCharacter)
-     // Reduce3:
-     {
-     /* aAdjust: -2
-      * MyGrammar= Expression(double result, string infixNotation);◄
-      * then: *Startsymbol= MyGrammar;◄ */
-
-     WriteResult(
-        result: _a.PeekRef(-1)._double,
-        infixNotation: _a.PeekRef(0)._string
-        );
-
-     _a.Free(2);
-     goto ApplyStartsymbolDefinition1;
-     }
-  if (Symbol <= LexerResult.SubOp)
-     goto State6;
-  if (Symbol >= LexerResult.PowOp)
-     goto State3;
-  Debug.Assert(Symbol == LexerResult.MultOp || Symbol == LexerResult.DivOp);
-  goto State11;
-
 State6:
-  const String StateDescription6 =
-       "Expression(double value, string infixNotation)= Expression(double leftAddend, string infixNotation1), Priority10, ►\"+\"(char c), Expression(double rightAddend, string infixNotation2);\r\n"
-     + "Expression(double value, string infixNotation)= Expression(double minuend, string infixNotation1), Priority10, ►\"-\"(char c), Expression(double subtrahend, string infixNotation2);";
-  Symbol = Lexer.PeekSymbol();
+  /* Expression(double value, string infixNotation)= Expression(double leftAddend, string infixNotation1), Priority10, ►"+"(char c), Expression(double rightAddend, string infixNotation2);
+   * Expression(double value, string infixNotation)= Expression(double minuend, string infixNotation1), Priority10, ►"-"(char c), Expression(double subtrahend, string infixNotation2); */
   if (Symbol <= LexerResult.AddOp)
      {
      Lexer.AcceptSymbol();
      goto State9;
-     }
-  if (Symbol > LexerResult.SubOp)
-     {
-     if (ErrorHandler(6, StateDescription6, Symbol))
-        goto State6;
-     goto EndWithError;
      }
   Debug.Assert(Symbol == LexerResult.SubOp);
   Lexer.AcceptSymbol();
@@ -720,7 +774,7 @@ State8:
   Symbol = Lexer.PeekSymbol();
   if (Symbol == LexerResult.PowOp)
      goto State3;
-  if (Symbol != LexerResult.MultOp && Symbol != LexerResult.DivOp)
+  if (!_IS(_fMultOp | _fDivOp))
      // Reduce9:
      {
      /* sAdjust: -1, aAdjust: -3
@@ -736,10 +790,10 @@ State8:
         infixNotation2: _a.PeekRef(0)._string
         );
 
-     _a.Free(3);
+     _a.Remove(3);
      goto Branch1;
      }
-  Debug.Assert(Symbol == LexerResult.MultOp || Symbol == LexerResult.DivOp);
+  Debug.Assert(_IS(_fMultOp | _fDivOp));
   goto State11;
 
 State9:
@@ -800,7 +854,7 @@ State10:
   Symbol = Lexer.PeekSymbol();
   if (Symbol == LexerResult.PowOp)
      goto State3;
-  if (Symbol != LexerResult.MultOp && Symbol != LexerResult.DivOp)
+  if (!_IS(_fMultOp | _fDivOp))
      // Reduce12:
      {
      /* sAdjust: -1, aAdjust: -3
@@ -816,11 +870,41 @@ State10:
         infixNotation2: _a.PeekRef(0)._string
         );
 
-     _a.Free(3);
+     _a.Remove(3);
      goto Branch1;
      }
-  Debug.Assert(Symbol == LexerResult.MultOp || Symbol == LexerResult.DivOp);
+  Debug.Assert(_IS(_fMultOp | _fDivOp));
   goto State11;
+
+State13:
+  /* Expression(double value, string infixNotation)= Expression(double multiplicand, string infixNotation1), ►Priority20, "*"(char c), Expression(double multiplier, string infixNotation2);
+   * Expression(double value, string infixNotation)= Expression(double dividend, string infixNotation1), ►Priority20, "/"(char c), Expression(double divisor, string infixNotation2);
+   * Expression(double value, string infixNotation)= Expression(double dividend, string infixNotation1), Priority20, "/"(char c), Expression(double divisor, string infixNotation2)●;
+   * Expression(double value, string infixNotation)= Expression(double leftAddend, string infixNotation1), ►Priority10, "+"(char c), Expression(double rightAddend, string infixNotation2);
+   * Expression(double value, string infixNotation)= Expression(double minuend, string infixNotation1), ►Priority10, "-"(char c), Expression(double subtrahend, string infixNotation2);
+   * Expression(double value, string infixNotation)= Expression(double b, string infixNotation1), ►Priority30, "^"(char c), Expression(double exponent, string infixNotation2); */
+  Symbol = Lexer.PeekSymbol();
+  if (Symbol != LexerResult.PowOp)
+     // Reduce15:
+     {
+     /* sAdjust: -1, aAdjust: -3
+      * Expression(double value, string infixNotation)= Expression(double dividend, string infixNotation1), Priority20, "/"(char c), Expression(double divisor, string infixNotation2);◄ */
+     _s.Pop();
+
+     Divide(
+        value: out _a.PeekRef(-4)._double,
+        infixNotation: out _a.PeekRef(-3)._string,
+        dividend: _a.PeekRef(-4)._double,
+        divisor: _a.PeekRef(-1)._double,
+        infixNotation1: _a.PeekRef(-3)._string,
+        infixNotation2: _a.PeekRef(0)._string
+        );
+
+     _a.Remove(3);
+     goto Branch1;
+     }
+  Debug.Assert(Symbol == LexerResult.PowOp);
+  goto State3;
 
 State14:
   const String StateDescription14 =
@@ -894,18 +978,16 @@ State15:
         infixNotation2: _a.PeekRef(0)._string
         );
 
-     _a.Free(3);
+     _a.Remove(3);
      goto Branch1;
      }
   Debug.Assert(Symbol == LexerResult.PowOp);
   goto State3;
 
-AcceptState20:
-  Lexer.AcceptSymbol();
-State20:
-  const String StateDescription20 =
-       "PrimaryExpression(double value, string infixNotation)= \"(\", ►Expression(double value, string infixNotation), \")\";";
-  _s.Push(7);
+State18:
+  const String StateDescription18 =
+       "MyGrammar= Identifier(string identifier), Priority90, \"=\", ►Expression(double result, string infixNotation);";
+  _s.Push(6);
   Symbol = Lexer.PeekSymbol();
   if (Symbol <= LexerResult.AddOp)
      goto AcceptState23;
@@ -916,7 +998,7 @@ State20:
   if (Symbol == LexerResult.Number)
      {
      Lexer.AcceptSymbol();
-     // Reduce23:
+     // Reduce20:
      /* aAdjust: 1
       * PrimaryExpression(double value, string infixNotation)= Number(double value);◄ */
      _a.Allocate();
@@ -926,20 +1008,20 @@ State20:
         infixNotation: out _a.PeekRef(0)._string
         );
 
-     goto State21;
+     goto State19;
      }
   if (Symbol < LexerResult.Identifier)
      {
-     if (ErrorHandler(20, StateDescription20, Symbol))
+     if (ErrorHandler(18, StateDescription18, Symbol))
         {
         _s.Pop();
-        goto State20;
+        goto State18;
         };
      goto EndWithError;
      }
   Debug.Assert(Symbol >= LexerResult.Identifier);
   Lexer.AcceptSymbol();
-  // Reduce24:
+  // Reduce21:
   /* aAdjust: 1
    * PrimaryExpression(double value, string infixNotation)= Identifier(string identifier);◄ */
   _a.Allocate();
@@ -949,6 +1031,38 @@ State20:
      infixNotation: out _a.PeekRef(0)._string,
      identifier: _a.PeekClear(-1)._string
      );
+
+State19:
+  /* MyGrammar= Identifier(string identifier), Priority90, "=", Expression(double result, string infixNotation)●;
+   * Expression(double value, string infixNotation)= Expression(double multiplicand, string infixNotation1), ►Priority20, "*"(char c), Expression(double multiplier, string infixNotation2);
+   * Expression(double value, string infixNotation)= Expression(double dividend, string infixNotation1), ►Priority20, "/"(char c), Expression(double divisor, string infixNotation2);
+   * Expression(double value, string infixNotation)= Expression(double leftAddend, string infixNotation1), ►Priority10, "+"(char c), Expression(double rightAddend, string infixNotation2);
+   * Expression(double value, string infixNotation)= Expression(double minuend, string infixNotation1), ►Priority10, "-"(char c), Expression(double subtrahend, string infixNotation2);
+   * Expression(double value, string infixNotation)= Expression(double b, string infixNotation1), ►Priority30, "^"(char c), Expression(double exponent, string infixNotation2); */
+  Symbol = Lexer.PeekSymbol();
+  if (Symbol >= LexerResult.OtherCharacter)
+     // Reduce22:
+     {
+     /* sAdjust: -1, aAdjust: -3
+      * MyGrammar= Identifier(string identifier), Priority90, "=", Expression(double result, string infixNotation);◄
+      * then: *Startsymbol= MyGrammar;◄ */
+     _s.Pop();
+
+     AssignValueToIdentifier(
+        identifier: _a.PeekRef(-2)._string,
+        result: _a.PeekRef(-1)._double,
+        infixNotation: _a.PeekRef(0)._string
+        );
+
+     _a.Remove(3);
+     goto ApplyStartsymbolDefinition1;
+     }
+  if (Symbol <= LexerResult.SubOp)
+     goto State6;
+  if (Symbol >= LexerResult.PowOp)
+     goto State3;
+  Debug.Assert(_IS(_fMultOp | _fDivOp));
+  goto State11;
 
 State21:
   const String StateDescription21 =
@@ -983,117 +1097,8 @@ State21:
         goto State21;
      goto EndWithError;
      }
-  Debug.Assert(Symbol == LexerResult.MultOp || Symbol == LexerResult.DivOp);
+  Debug.Assert(_IS(_fMultOp | _fDivOp));
   goto State11;
-
-AcceptState22:
-  Lexer.AcceptSymbol();
-State22:
-  const String StateDescription22 =
-       "Expression(double value, string infixNotation)= \"-\"(char c), ►PrimaryExpression(double value2, string infixNotation2);";
-  _s.Push(8);
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol == LexerResult.LeftParentheses)
-     goto AcceptState20;
-  if (Symbol == LexerResult.Number)
-     {
-     Lexer.AcceptSymbol();
-     // Reduce26:
-     /* aAdjust: 1
-      * PrimaryExpression(double value, string infixNotation)= Number(double value);◄ */
-     _a.Allocate();
-
-     Primary(
-        value: _a.PeekRef(-1)._double,
-        infixNotation: out _a.PeekRef(0)._string
-        );
-
-     goto Reduce28;
-     }
-  if (Symbol < LexerResult.Identifier)
-     {
-     if (ErrorHandler(22, StateDescription22, Symbol))
-        {
-        _s.Pop();
-        goto State22;
-        };
-     goto EndWithError;
-     }
-  Debug.Assert(Symbol >= LexerResult.Identifier);
-  Lexer.AcceptSymbol();
-  // Reduce27:
-  /* aAdjust: 1
-   * PrimaryExpression(double value, string infixNotation)= Identifier(string identifier);◄ */
-  _a.Allocate();
-
-  IdentifierInExpression(
-     value: out _a.PeekRef(-1)._double,
-     infixNotation: out _a.PeekRef(0)._string,
-     identifier: _a.PeekClear(-1)._string
-     );
-
-  goto Reduce28;
-
-AcceptState23:
-  Lexer.AcceptSymbol();
-State23:
-  const String StateDescription23 =
-       "Expression(double value, string infixNotation)= \"+\"(char c), ►PrimaryExpression(double value2, string infixNotation2);";
-  _s.Push(9);
-  Symbol = Lexer.PeekSymbol();
-  if (Symbol == LexerResult.LeftParentheses)
-     goto AcceptState20;
-  if (Symbol == LexerResult.Number)
-     {
-     Lexer.AcceptSymbol();
-     // Reduce29:
-     /* aAdjust: 1
-      * PrimaryExpression(double value, string infixNotation)= Number(double value);◄ */
-     _a.Allocate();
-
-     Primary(
-        value: _a.PeekRef(-1)._double,
-        infixNotation: out _a.PeekRef(0)._string
-        );
-
-     goto Reduce31;
-     }
-  if (Symbol < LexerResult.Identifier)
-     {
-     if (ErrorHandler(23, StateDescription23, Symbol))
-        {
-        _s.Pop();
-        goto State23;
-        };
-     goto EndWithError;
-     }
-  Debug.Assert(Symbol >= LexerResult.Identifier);
-  Lexer.AcceptSymbol();
-  // Reduce30:
-  /* aAdjust: 1
-   * PrimaryExpression(double value, string infixNotation)= Identifier(string identifier);◄ */
-  _a.Allocate();
-
-  IdentifierInExpression(
-     value: out _a.PeekRef(-1)._double,
-     infixNotation: out _a.PeekRef(0)._string,
-     identifier: _a.PeekClear(-1)._string
-     );
-
-Reduce31:
-  /* sAdjust: -1, aAdjust: -1
-   * Expression(double value, string infixNotation)= "+"(char c), PrimaryExpression(double value2, string infixNotation2);◄ */
-  _s.Pop();
-
-  UnaryPlus(
-     value: out _a.PeekRefClear(-2)._double,
-     infixNotation: out _a.PeekRef(-1)._string,
-     value2: _a.PeekClear(-1)._double,
-     infixNotation2: _a.PeekRef(0)._string
-     );
-
-  _a.Free();
-  goto Branch1;
 
 ApplyStartsymbolDefinition1:
   // Halt: a definition of the startsymbol with 0 attributes has been recognized.
@@ -1102,16 +1107,16 @@ ApplyStartsymbolDefinition1:
 
 EndWithError:
   // This point is reached after an input error has been found
-  _s.Discard(_s.Count - StateStackInitialCount);
-  _a.Free(_a.Count - AttributeStackInitialCount);
+  _s.Discard(_s.Count - _StateStackInitialCount);
+  _a.Remove(_a.Count - _AttributeStackInitialCount);
 
 EndOfGeneratedCode:
   ;
 
-#endregion grammlator generated Sat, 12 Sep 2020 21:09:48 GMT (grammlator, File version 2020.07.28.0 12.09.2020 13:34:12)
+#endregion grammlator generated 5 Okt 2020 (grammlator file version/date 2020.10.05.0/5 Okt 2020)
          /**** This line and the lines up to the end of the file are written by hand  ****/
          /**** This line and the lines up to the end of the file are written by hand  ****/
-         string RemainingCharacters = Lexer.GetRemainingCharactersOfLine();
+         string RemainingCharacters = Lexer.GetAndSkipRemainingCharactersOfLine();
          if (!string.IsNullOrEmpty(RemainingCharacters))
          {
             Console.WriteLine("Remaining characters ignored: '" + RemainingCharacters + "'");
