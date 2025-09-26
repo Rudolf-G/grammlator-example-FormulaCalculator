@@ -90,14 +90,14 @@ namespace GrammlatorRuntime {
       /// <summary>
       /// Returns a local stack with the attributes of Symbol (if any). It is empty if accepted == true.
       /// </summary>
-      protected StackOfMultiTypeElements AttributesOfSymbol {
+      protected StackOfMultiTypeElements _AttributesOfSymbol {
          get;
          // private set{ _AttributesOfSymbol = value; }
       } = new StackOfMultiTypeElements(10);
 
       /// <summary>
-      /// Sets <see cref="Accepted"/>=true, copies the <see cref="AttributesOfSymbol"/> to the attribute stack
-      /// andthen clears <see cref="AttributesOfSymbol"/>. 
+      /// Sets <see cref="Accepted"/>=true, copies the <see cref="_AttributesOfSymbol"/> to the attribute stack
+      /// andthen clears <see cref="_AttributesOfSymbol"/>. 
       /// Has no effect, if accepted==true.
       /// </summary>
       public virtual void AcceptSymbol()
@@ -105,12 +105,12 @@ namespace GrammlatorRuntime {
          if (Accepted)
             return;
          Accepted = true;
-         _a.CopyAndRemoveFrom(AttributesOfSymbol);
+         _a.CopyAndRemoveFrom(_AttributesOfSymbol);
       }
 
       /// <summary>
       /// if <see cref="Accepted"/>==true computes the next Symbol,
-      /// pushs its attributes to <see cref="AttributesOfSymbol"/>
+      /// pushs its attributes to <see cref="_AttributesOfSymbol"/>
       /// and sets <see cref="Accepted"/> to false,
       /// else does nothing
       /// </summary>
@@ -304,19 +304,15 @@ namespace GrammlatorRuntime {
    /// The other fields contain old or undefined values, may overlap on anonother and be overwritten by random binary patterns.
    /// The standrad grammlator runtime provides all C# standard types. Additional types can be added.
    /// </summary>
-   [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1815:OverrideEqualsAndOperatorEqualsOnValueTypes")]
+   
    [StructLayout(LayoutKind.Explicit)]
-#pragma warning disable CA1708 // Identifiers should differ by more than case
    public partial struct MultiTypeStruct // may be extended by "partial" declarations
-#pragma warning restore CA1708 // Identifiers should differ by more than case
     {
       /* It is possible, to overlap fields with different object types.
        * Not all errors caused by different overlapping object-types are recognized by the C# compiler or the C# runtime system.
        * Storing an object in one field and accessing the object by an other typed object field 
        * will result in very hard to recognize errors in the behaviour of the program.
        */
-#pragma warning disable CA1051 // Do not declare visible instance fields
-#pragma warning disable CS1591 // Fehledes XML-Kommentar für öffentlich sichtbaren Typ oder Element
       [FieldOffset(0)]
       public object _object; // object types
 
@@ -361,8 +357,6 @@ namespace GrammlatorRuntime {
 
       [FieldOffset(8)]
       public ushort _ushort;
-#pragma warning restore CS1591 // Fehledes XML-Kommentar für öffentlich sichtbaren Typ oder Element
-#pragma warning restore CA1051 // Do not declare visible instance fields
    }
 
    /// <summary>
@@ -373,7 +367,6 @@ namespace GrammlatorRuntime {
       /// Constructor
       /// </summary>
       /// <param name="initialCapacity">must be >= 0. Ff not specified, an implemenation specific value will be used</param>
-      [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
       public StackOfMultiTypeElements(Int32 initialCapacity)
       {
          if (initialCapacity < 0)
@@ -554,7 +547,7 @@ namespace GrammlatorRuntime {
          if (startIndex > TopIndex)
             return "";
 
-         Int32 EndIndex = Array.FindIndex(a, startIndex, TopIndex - startIndex + 1, (MultiTypeStruct x) => x._char == (Char)0);
+         Int32 EndIndex = Array.FindIndex(a, startIndex, TopIndex - startIndex + 1, x => x._char == (Char)0);
          if (EndIndex == -1)
             EndIndex = TopIndex + 1; // if (char)0 not found proceed as it would be above top of stack
 

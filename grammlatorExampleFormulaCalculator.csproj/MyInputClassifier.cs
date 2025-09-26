@@ -77,7 +77,7 @@ namespace GrammlatorExampleFormulaCalculator {
          if (Accepted)
             return;
          Accepted = true;
-         _a.CopyAndRemoveFrom(AttributesOfSymbol);
+         _a.CopyAndRemoveFrom(_AttributesOfSymbol);
          Column++;
       }
 
@@ -161,8 +161,8 @@ namespace GrammlatorExampleFormulaCalculator {
              || Symbol == ClassifierResult.Letter
              )
          {
-            AttributesOfSymbol.Allocate(1);
-            AttributesOfSymbol.PeekRef(0)._char = InputCharacter;
+            _AttributesOfSymbol.Allocate(1);
+            _AttributesOfSymbol.PeekRef(0)._char = InputCharacter;
          }
 
          return Symbol;
